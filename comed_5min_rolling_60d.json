@@ -1,0 +1,8 @@
+{
+  "source": "ComEd 5-minute pricing API",
+  "source_url": "https://hourlypricing.comed.com/api?type=5minutefeed&format=json",
+  "updated_at": null,
+  "coverage_start": null,
+  "coverage_end": null,
+  "items": []
+}
