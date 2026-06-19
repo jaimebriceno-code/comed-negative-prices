@@ -65,6 +65,7 @@ tr:hover td{background:rgba(255,255,255,0.03);}
   <div class="card"><div class="card-label">Records</div><div class="card-value blue" id="stat-count">&mdash;</div><div class="card-sub">Rolling 60-day 5-minute feed</div></div>
   <div class="card"><div class="card-label">Negative Intervals</div><div class="card-value green" id="stat-neg">&mdash;</div><div class="card-sub" id="stat-neg-recent">&mdash;</div></div>
   <div class="card"><div class="card-label">Weight Model</div><div class="card-value yellow">70 / 30</div><div class="card-sub">70% recent 5 days, 30% older history</div></div>
+  <div class="card"><div class="card-label">Current 5-Min Price</div><div class="card-value" id="stat-live-price">&mdash;</div><div class="card-sub" id="stat-live-sub">&mdash;</div></div>
 </div>
 
 <section>
@@ -126,7 +127,7 @@ tr:hover td{background:rgba(255,255,255,0.03);}
 <section>
   <h2>Tomorrow &ndash; Day-Ahead 3-Hour Suggestion</h2>
   <div id="tomorrow-panel" class="card"><span class="loading">Fetching day-ahead prices&hellip;</span></div>
-  <p class="note">ComEd day-ahead prices published ~4:30 PM CT. Before that time this panel may show unavailable. Day-ahead prices are indicative only; billing uses real-time hourly prices.</p>
+  <p class="note">ComEd day-ahead prices published ~4:30 PM CT. Day-ahead prices are indicative only; billing uses real-time hourly prices.</p>
 </section>
 
 <section>
@@ -149,7 +150,8 @@ tr:hover td{background:rgba(255,255,255,0.03);}
 
 <script>
 const FEED_URL='./data/comed_5min_rolling_60d.json';
-const JINA='https://r.jina.ai/https://hourlypricing.comed.com/live-prices/day-ahead-prices/';
+const JINA='https://r.jina.ai/https://hourlypricing.comed.com/pricing-table-tomorrow/';
+const LIVE_URL='https://hourlypricing.comed.com/api?type=5minutefeed&format=json';
 const RECENT_DAYS=5,W_RECENT=0.70,W_OLDER=0.30;
 const USABLE_KWH=68,CHARGER_KW=9.6,CHARGE_EFF=0.90,MILES_PER_KWH=3.0;
 const DELIVERY={overnight:3.311,morning:4.428,midday:11.727,evening:4.142};
@@ -159,8 +161,7 @@ const OVN_START=21*60,OVN_END=6*60;
 function toChiMin(iso){
   const d=new Date(iso);
   const s=d.toLocaleString('en-US',{timeZone:'America/Chicago',hour12:false,hour:'2-digit',minute:'2-digit'});
-  const [h,m]=s.split(':');
-  let hh=parseInt(h,10);if(hh===24)hh=0;
+  const [h,m]=s.split(':');let hh=parseInt(h,10);if(hh===24)hh=0;
   return hh*60+parseInt(m,10);
 }
 function inOvn(m){return m>=OVN_START||m<OVN_END;}
@@ -193,15 +194,10 @@ function syncI(sid,nid,vid){const v=document.getElementById(sid).value;document.
 function syncS(nid,sid,vid){const v=document.getElementById(nid).value;document.getElementById(sid).value=v;document.getElementById(vid).textContent=v+'%';}
 
 function bestWindow(slots,hours){
-  const steps=hours*2;
-  let best=null;
+  const steps=hours*2;let best=null;
   for(let i=0;i<=slots.length-steps;i++){
-    const slice=slots.slice(i,i+steps);
-    let ok=true;
-    for(let j=1;j<slice.length;j++){
-      const diff=(slice[j].min-slice[j-1].min+1440)%1440;
-      if(diff!==30){ok=false;break;}
-    }
+    const slice=slots.slice(i,i+steps);let ok=true;
+    for(let j=1;j<slice.length;j++){const diff=(slice[j].min-slice[j-1].min+1440)%1440;if(diff!==30){ok=false;break;}}
     if(!ok)continue;
     const avg=slice.reduce((a,b)=>a+b.wavg,0)/slice.length;
     if(!best||avg<best.avg)best={start:slice[0].min,end:(slice[slice.length-1].min+30)%1440,avg};
@@ -221,14 +217,12 @@ function processData(data){
   const recentCut=now-RECENT_DAYS*86400000;
   const negCount=items.filter(x=>x.price<0).length;
   const negRecent=items.filter(x=>x.price<0&&parseInt(x.millisUTC)>=recentCut).length;
-
   document.getElementById('stat-updated').textContent=fmtDate(data.updated_at);
   document.getElementById('stat-coverage').textContent='Coverage '+fmtDate(data.coverage_start)+' \u2192 '+fmtDate(data.coverage_end);
   document.getElementById('stat-count').textContent=data.item_count.toLocaleString();
   document.getElementById('stat-neg').textContent=negCount.toLocaleString();
   document.getElementById('stat-neg-recent').textContent=negRecent+' in the recent 5-day weighting window';
 
-  // All-in averages by TOD bucket
   const buckets={overnight:[],morning:[],midday:[],evening:[]};
   items.forEach(x=>{
     const m=toChiMin(x.ts_utc);
@@ -244,7 +238,6 @@ function processData(data){
   document.getElementById('allin-midday').textContent=avg(buckets.midday);
   document.getElementById('allin-evening').textContent=avg(buckets.evening);
 
-  // Weighted overnight slots
   const slotMap={};
   items.forEach(x=>{
     const ms=parseInt(x.millisUTC);
@@ -266,7 +259,6 @@ function processData(data){
     return{min:s.min,wavg};
   }).sort((a,b)=>a.min-b.min);
 
-  // Best windows
   [2,3,4].forEach(h=>{
     const w=bestWindow(slots,h);
     if(w){
@@ -275,21 +267,42 @@ function processData(data){
     }
   });
 
-  // Top 10
   const sorted=[...slots].sort((a,b)=>a.wavg-b.wavg);
-  const top10=sorted.slice(0,10);
-  const worst=sorted.slice(-5).reverse();
-  document.getElementById('top10-body').innerHTML=top10.map((s,i)=>`
-    <tr><td>${i+1}</td><td>${fmtMin(s.min)}\u2013${fmtMin((s.min+30)%1440)}</td>
+  document.getElementById('top10-body').innerHTML=sorted.slice(0,10).map((s,i)=>`
+    <tr><td>${i+1}</td><td>${fmtMin(s.min)}&ndash;${fmtMin((s.min+30)%1440)}</td>
     <td class="${s.wavg<0?'green':s.wavg<5?'accent':'yellow'}">${s.wavg.toFixed(2)}¢</td>
     <td>${allIn(s.wavg,s.min).toFixed(2)}¢</td><td>${signal(s.wavg)}</td></tr>`).join('');
-  document.getElementById('worst-body').innerHTML=worst.map(s=>`
-    <tr><td>${fmtMin(s.min)}\u2013${fmtMin((s.min+30)%1440)}</td>
+  document.getElementById('worst-body').innerHTML=sorted.slice(-5).reverse().map(s=>`
+    <tr><td>${fmtMin(s.min)}&ndash;${fmtMin((s.min+30)%1440)}</td>
     <td class="red">${s.wavg.toFixed(2)}¢</td>
     <td class="red">${allIn(s.wavg,s.min).toFixed(2)}¢</td><td>${signal(s.wavg)}</td></tr>`).join('');
 
-  // Store slots for calculator
   window._slots=slots;
+}
+
+async function loadLivePrice(){
+  try{
+    const r=await fetch(LIVE_URL);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    if(!Array.isArray(data)||!data.length)return;
+    data.sort((a,b)=>parseInt(b.millisUTC)-parseInt(a.millisUTC));
+    const latest=data[0];
+    const price=parseFloat(latest.price);
+    const ts=new Date(parseInt(latest.millisUTC));
+    const timeStr=ts.toLocaleString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});
+    const el=document.getElementById('stat-live-price');
+    const sub=document.getElementById('stat-live-sub');
+    el.textContent=price.toFixed(2)+'¢/kWh';
+    if(price<0){el.className='card-value green';}
+    else if(price<3){el.className='card-value accent';}
+    else if(price<8){el.className='card-value yellow';}
+    else{el.className='card-value red';}
+    sub.innerHTML='As of '+timeStr+' CT &middot; '+signal(price);
+  }catch(e){
+    document.getElementById('stat-live-price').textContent='Unavailable';
+    document.getElementById('stat-live-sub').textContent=e.message;
+  }
 }
 
 async function loadTomorrow(){
@@ -298,14 +311,9 @@ async function loadTomorrow(){
     const r=await fetch(JINA,{headers:{'Accept':'text/plain'}});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const txt=await r.text();
-    const rows=[...txt.matchAll(/\|\s*(\d{1,2}:\d{2}\s*[AP]M)\s*\|\s*([-\d.]+)/gi)];
-    if(!rows.length)throw new Error('No data yet');
-    const parsed=rows.map(m=>({
-      label:m[1].trim(),
-      price:parseFloat(m[2])
-    })).filter(x=>isFinite(x.price));
-    if(!parsed.length)throw new Error('No parseable rows');
-
+    const rows=[...txt.matchAll(/\|\s*(\d{1,2}:\d{2}\s*[AP]M)\s*\|\s*([-\d.]+)¢\s*\|/gi)];
+    if(!rows.length)throw new Error('No data yet — check back after 4:30 PM CT');
+    const parsed=rows.map(m=>({label:m[1].trim(),price:parseFloat(m[2])})).filter(x=>isFinite(x.price));
     function hm(label){
       const m=label.match(/(\d{1,2}):(\d{2})\s*([AP]M)/i);
       if(!m)return null;
@@ -317,24 +325,22 @@ async function loadTomorrow(){
     ovn.sort((a,b)=>a.min-b.min);
     let best=null;
     for(let i=0;i<=ovn.length-3;i++){
-      const sl=ovn.slice(i,i+3);
-      let ok=true;
+      const sl=ovn.slice(i,i+3);let ok=true;
       for(let j=1;j<sl.length;j++){if(((sl[j-1].min+60)%1440)!==sl[j].min){ok=false;break;}}
       if(!ok)continue;
       const avg=sl.reduce((a,b)=>a+b.price,0)/3;
       if(!best||avg<best.avg)best={start:sl[0].min,end:(sl[2].min+60)%1440,avg,labels:sl.map(x=>x.label)};
     }
     if(best){
-      panel.innerHTML=`
-        <div class="card-label">Recommended 3-Hour Window Tomorrow</div>
+      panel.innerHTML=`<div class="card-label">Recommended 3-Hour Window Tomorrow</div>
         <div class="card-value green">${fmtMin(best.start)}&ndash;${fmtMin(best.end)}</div>
-        <div class="card-sub">Day-ahead avg ${best.avg.toFixed(2)}¢/kWh &middot; Hours: ${best.labels.join(', ')}</div>
-        <div class="card-sub" style="margin-top:6px;">All-in est. ${allIn(best.avg,best.start).toFixed(2)}¢/kWh &middot; ${signal(best.avg)}</div>`;
-    } else {
-      panel.innerHTML='<span style="color:var(--muted)">No overnight 3-hour block found in tomorrow\'s day-ahead data.</span>';
+        <div class="card-sub">Day-ahead avg ${best.avg.toFixed(2)}&cent;/kWh &middot; Hours: ${best.labels.join(', ')}</div>
+        <div class="card-sub" style="margin-top:6px;">All-in est. ${allIn(best.avg,best.start).toFixed(2)}&cent;/kWh &middot; ${signal(best.avg)}</div>`;
+    }else{
+      panel.innerHTML='<span style="color:var(--muted)">No overnight 3-hour block found in tomorrow\'s data.</span>';
     }
   }catch(e){
-    panel.innerHTML='<span style="color:var(--muted)">Day-ahead data unavailable (published ~4:30 PM CT): '+e.message+'</span>';
+    panel.innerHTML='<span style="color:var(--muted)">Day-ahead data unavailable: '+e.message+'</span>';
   }
 }
 
@@ -344,82 +350,60 @@ function runCalc(){
   const readyVal=document.getElementById('ready-time').value||'07:00';
   const [rh,rm]=readyVal.split(':').map(Number);
   const readyMin=rh*60+rm;
-
   if(tgt<=cur){
     document.getElementById('rec-output').innerHTML='<div class="warn-box"><div class="rec-title">Notice</div><div class="warn-main">Target % must be higher than current %.</div></div>';
     document.getElementById('calc-results').classList.add('visible');
     return;
   }
-
   const kwhNeeded=USABLE_KWH*(tgt-cur)/100;
   const wallKwh=kwhNeeded/CHARGE_EFF;
   const hoursNeeded=wallKwh/CHARGER_KW;
   const minsNeeded=Math.ceil(hoursNeeded*60);
   const milesAdded=kwhNeeded*MILES_PER_KWH;
-
-  // Latest possible start = readyMin - minsNeeded
   const latestStart=((readyMin-minsNeeded)+1440)%1440;
-
   document.getElementById('r-kwh').textContent=kwhNeeded.toFixed(1)+' kWh';
   document.getElementById('r-wall').textContent=wallKwh.toFixed(1)+' kWh';
   document.getElementById('r-time').textContent=Math.floor(hoursNeeded)+'h '+Math.round((hoursNeeded%1)*60)+'m';
   document.getElementById('r-miles').textContent=milesAdded.toFixed(1)+' mi';
-
-  // Estimate cost using overnight all-in rate
-  const overnightAllIn=allIn(2.0,OVN_START); // use typical overnight market ~2¢
-  const sessionCost=wallKwh*overnightAllIn/100;
-  const costPerMile=sessionCost/milesAdded;
-  document.getElementById('r-cost').textContent='$'+sessionCost.toFixed(2);
-  document.getElementById('r-cpm').textContent=(costPerMile*100).toFixed(1)+'¢/mi';
-
-  // Find best window that fits charge duration
   const slots=window._slots||[];
   const stepsNeeded=Math.ceil(minsNeeded/30);
   let bestW=null;
   const ovnSlots=slots.filter(s=>inOvn(s.min));
-
   for(let i=0;i<=ovnSlots.length-stepsNeeded;i++){
-    const slice=ovnSlots.slice(i,i+stepsNeeded);
-    let ok=true;
-    for(let j=1;j<slice.length;j++){
-      const diff=(slice[j].min-slice[j-1].min+1440)%1440;
-      if(diff!==30){ok=false;break;}
-    }
+    const slice=ovnSlots.slice(i,i+stepsNeeded);let ok=true;
+    for(let j=1;j<slice.length;j++){const diff=(slice[j].min-slice[j-1].min+1440)%1440;if(diff!==30){ok=false;break;}}
     if(!ok)continue;
-    // Check it finishes before ready time
     const endMin=(slice[slice.length-1].min+30)%1440;
-    const startMin=slice[0].min;
-    // Convert both to absolute minutes handling midnight crossing
     let finishesOk=false;
-    if(readyMin<=6*60){
-      // ready time is early morning - end must be before readyMin next day
-      finishesOk=endMin<=readyMin||endMin>=OVN_START;
-    } else {
-      finishesOk=endMin<=readyMin;
-    }
+    if(readyMin<=6*60){finishesOk=endMin<=readyMin||endMin>=OVN_START;}
+    else{finishesOk=endMin<=readyMin;}
+    if(!finishesOk)continue;
     const avg=slice.reduce((a,b)=>a+b.wavg,0)/slice.length;
-    if(!bestW||avg<bestW.avg) bestW={start:startMin,end:endMin,avg,steps:stepsNeeded};
+    if(!bestW||avg<bestW.avg)bestW={start:slice[0].min,end:endMin,avg};
   }
-
   const recOut=document.getElementById('rec-output');
   if(bestW){
     const aiEst=allIn(bestW.avg,bestW.start);
     const totalCost=wallKwh*aiEst/100;
-    recOut.innerHTML=`
-      <div class="rec-box">
-        <div class="rec-title">Recommended Charging Window</div>
-        <div class="rec-main">${fmtMin(bestW.start)} &ndash; ${fmtMin(bestW.end)}</div>
-        <div class="rec-sub">Weighted avg supply ${bestW.avg.toFixed(2)}&cent;/kWh &middot; All-in est. ${aiEst.toFixed(2)}&cent;/kWh</div>
-        <div class="rec-sub">Est. session cost <strong>$${totalCost.toFixed(2)}</strong> &middot; ${milesAdded.toFixed(0)} miles added &middot; ${(totalCost/milesAdded*100).toFixed(1)}&cent;/mile</div>
-        <div class="rec-sub" style="margin-top:4px;">Latest plug-in: <strong>${fmtMin(((readyMin-minsNeeded)+1440)%1440)}</strong> to finish by ${fmtMin(readyMin)}</div>
-      </div>`;
-  } else {
-    recOut.innerHTML=`
-      <div class="warn-box">
-        <div class="rec-title">Notice</div>
-        <div class="warn-main">Not enough overnight data to find a ${Math.ceil(minsNeeded/60)}h window before ${fmtMin(readyMin)}.</div>
-        <div class="rec-sub">Latest possible start: ${fmtMin(latestStart)} to finish by ${fmtMin(readyMin)}.</div>
-      </div>`;
+    const cpm=totalCost/milesAdded*100;
+    recOut.innerHTML=`<div class="rec-box">
+      <div class="rec-title">Recommended Charging Window</div>
+      <div class="rec-main">${fmtMin(bestW.start)} &ndash; ${fmtMin(bestW.end)}</div>
+      <div class="rec-sub">Weighted avg supply ${bestW.avg.toFixed(2)}&cent;/kWh &middot; All-in est. ${aiEst.toFixed(2)}&cent;/kWh</div>
+      <div class="rec-sub">Est. session cost <strong>$${totalCost.toFixed(2)}</strong> &middot; ${milesAdded.toFixed(0)} miles added &middot; ${cpm.toFixed(1)}&cent;/mile</div>
+      <div class="rec-sub" style="margin-top:4px;">Latest plug-in: <strong>${fmtMin(latestStart)}</strong> to finish by ${fmtMin(readyMin)}</div>
+    </div>`;
+    document.getElementById('r-cost').textContent='$'+totalCost.toFixed(2);
+    document.getElementById('r-cpm').textContent=cpm.toFixed(1)+'¢/mi';
+  }else{
+    recOut.innerHTML=`<div class="warn-box">
+      <div class="rec-title">Notice</div>
+      <div class="warn-main">No window found before ${fmtMin(readyMin)}. Latest start: ${fmtMin(latestStart)}.</div>
+    </div>`;
+    const fallbackAI=allIn(2.0,OVN_START);
+    const fallbackCost=wallKwh*fallbackAI/100;
+    document.getElementById('r-cost').textContent='~$'+fallbackCost.toFixed(2);
+    document.getElementById('r-cpm').textContent=(fallbackCost/milesAdded*100).toFixed(1)+'¢/mi';
   }
   document.getElementById('calc-results').classList.add('visible');
 }
@@ -429,10 +413,11 @@ async function init(){
     const data=await loadFeed();
     processData(data);
   }catch(e){
-    document.getElementById('stat-updated').textContent='Error loading feed';
+    document.getElementById('stat-updated').textContent='Error: '+e.message;
     console.error(e);
   }
   loadTomorrow();
+  loadLivePrice();
 }
 
 init();
