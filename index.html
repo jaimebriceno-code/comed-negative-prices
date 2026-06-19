@@ -1,183 +1,441 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ComEd EV Charging Planner – Homewood IL</title>
-  <style>
-    :root {
-      --bg: #0b1220; --card: #111827; --border: #1e293b;
-      --text: #f1f5f9; --muted: #94a3b8;
-      --green: #86efac; --red: #fca5a5; --blue: #93c5fd;
-      --yellow: #fde68a; --purple: #c4b5fd; --accent: #38bdf8;
-      --orange: #fdba74;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 15px; padding: 16px; max-width: 960px; margin: 0 auto;
-    }
-    h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: 4px; }
-    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-    .card-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
-    .card-value { font-size: 1.35rem; font-weight: 700; }
-    .card-sub { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
-    .green { color: var(--green); } .red { color: var(--red); }
-    .blue { color: var(--blue); } .yellow { color: var(--yellow); }
-    .purple { color: var(--purple); } .accent { color: var(--accent); }
-    .orange { color: var(--orange); }
-    section { margin-bottom: 24px; }
-    section h2 { font-size: 1rem; color: var(--accent); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th { text-align: left; color: var(--muted); font-weight: 600; padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 0.75rem; text-transform: uppercase; }
-    td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.03); }
-    .badge { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-    .badge-green { background: rgba(134,239,172,0.15); color: var(--green); }
-    .badge-red { background: rgba(252,165,165,0.15); color: var(--red); }
-    .badge-yellow { background: rgba(253,230,138,0.15); color: var(--yellow); }
-    .badge-blue { background: rgba(147,197,253,0.15); color: var(--blue); }
-    .badge-orange { background: rgba(253,186,116,0.15); color: var(--orange); }
-    .note { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
-    .disclaimer { font-size: 0.75rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 24px; }
-    .loading { color: var(--muted); font-style: italic; }
-
-    /* Plug-in Calculator */
-    .calc-card { background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 20px; }
-    .calc-card h3 { color: var(--accent); font-size: 1rem; margin-bottom: 16px; }
-    .calc-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-    .calc-row label { color: var(--muted); font-size: 0.82rem; min-width: 160px; }
-    .calc-input {
-      background: #1e293b; border: 1px solid var(--border); border-radius: 6px;
-      color: var(--text); font-size: 1rem; padding: 6px 10px; width: 80px;
-      text-align: center;
-    }
-    .calc-input:focus { outline: 1px solid var(--accent); }
-    .calc-slider { width: 160px; accent-color: var(--accent); }
-    .calc-pct { color: var(--accent); font-weight: 700; min-width: 40px; }
-    .calc-btn {
-      background: var(--accent); color: #0b1220; border: none; border-radius: 8px;
-      font-size: 0.9rem; font-weight: 700; padding: 10px 24px; cursor: pointer;
-      margin-top: 4px;
-    }
-    .calc-btn:hover { background: #7dd3fc; }
-    .calc-results { margin-top: 16px; display: none; }
-    .calc-results.visible { display: block; }
-    .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
-    .result-chip { background: #1e293b; border-radius: 8px; padding: 10px 12px; }
-    .result-chip .rlabel { font-size: 0.68rem; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-    .result-chip .rval { font-size: 1.1rem; font-weight: 700; }
-    .rec-box { background: #1e293b; border-left: 3px solid var(--green); border-radius: 0 8px 8px 0; padding: 12px 14px; margin-top: 10px; }
-    .rec-box .rec-title { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-    .rec-box .rec-main { font-size: 1.1rem; font-weight: 700; color: var(--green); }
-    .rec-box .rec-sub { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
-    .warn-box { background: #1e293b; border-left: 3px solid var(--yellow); border-radius: 0 8px 8px 0; padding: 12px 14px; margin-top: 10px; }
-    .warn-box .rec-title { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-    .warn-box .rec-main { font-size: 1rem; font-weight: 700; color: var(--yellow); }
-    .warn-box .rec-sub { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComEd EV Charging Planner – Homewood IL</title>
+<style>
+:root{--bg:#0b1220;--card:#111827;--border:#1e293b;--text:#f1f5f9;--muted:#94a3b8;--green:#86efac;--red:#fca5a5;--blue:#93c5fd;--yellow:#fde68a;--purple:#c4b5fd;--accent:#38bdf8;--orange:#fdba74;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;padding:16px;max-width:960px;margin:0 auto;}
+h1{font-size:1.4rem;color:var(--accent);margin-bottom:4px;}
+.subtitle{color:var(--muted);font-size:0.85rem;margin-bottom:20px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.card-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+.card-value{font-size:1.35rem;font-weight:700;}
+.card-sub{font-size:0.78rem;color:var(--muted);margin-top:4px;}
+.green{color:var(--green);}.red{color:var(--red);}.blue{color:var(--blue);}.yellow{color:var(--yellow);}.purple{color:var(--purple);}.accent{color:var(--accent);}.orange{color:var(--orange);}
+section{margin-bottom:24px;}
+section h2{font-size:1rem;color:var(--accent);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:6px;}
+table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+th{text-align:left;color:var(--muted);font-weight:600;padding:6px 10px;border-bottom:1px solid var(--border);font-size:0.75rem;text-transform:uppercase;}
+td{padding:7px 10px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.03);}
+.badge{display:inline-block;font-size:0.7rem;padding:2px 8px;border-radius:999px;font-weight:600;}
+.badge-green{background:rgba(134,239,172,0.15);color:var(--green);}
+.badge-red{background:rgba(252,165,165,0.15);color:var(--red);}
+.badge-yellow{background:rgba(253,230,138,0.15);color:var(--yellow);}
+.badge-blue{background:rgba(147,197,253,0.15);color:var(--blue);}
+.badge-orange{background:rgba(253,186,116,0.15);color:var(--orange);}
+.note{font-size:0.78rem;color:var(--muted);margin-top:8px;}
+.loading{color:var(--muted);font-style:italic;}
+.disclaimer{font-size:0.75rem;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;margin-top:24px;}
+.calc-card{background:var(--card);border:2px solid var(--accent);border-radius:12px;padding:20px;}
+.calc-card h3{color:var(--accent);font-size:0.95rem;margin-bottom:16px;}
+.calc-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.clabel{color:var(--muted);font-size:0.82rem;min-width:160px;}
+.calc-input{background:#1e293b;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:1rem;padding:6px 10px;width:80px;text-align:center;}
+.calc-input:focus{outline:1px solid var(--accent);}
+.calc-slider{width:160px;accent-color:var(--accent);}
+.calc-pct{color:var(--accent);font-weight:700;min-width:44px;}
+.calc-btn{background:var(--accent);color:#0b1220;border:none;border-radius:8px;font-size:0.9rem;font-weight:700;padding:10px 24px;cursor:pointer;margin-top:4px;}
+.calc-btn:hover{background:#7dd3fc;}
+.calc-results{margin-top:16px;display:none;}
+.calc-results.visible{display:block;}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px;}
+.result-chip{background:#1e293b;border-radius:8px;padding:10px 12px;}
+.rlabel{font-size:0.68rem;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.rval{font-size:1.1rem;font-weight:700;}
+.rec-box{background:#1e293b;border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:12px 14px;margin-top:10px;}
+.rec-title{font-size:0.75rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.rec-main{font-size:1.1rem;font-weight:700;color:var(--green);}
+.rec-sub{font-size:0.82rem;color:var(--muted);margin-top:4px;}
+.warn-box{background:#1e293b;border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:12px 14px;margin-top:10px;}
+.warn-main{font-size:1rem;font-weight:700;color:var(--yellow);}
+</style>
 </head>
 <body>
-
 <h1>ComEd EV Charging Planner</h1>
-<p class="subtitle">Homewood, IL &nbsp;·&nbsp; Res Hourly Single – TOD &nbsp;·&nbsp; America/Chicago &nbsp;·&nbsp; Weighted 70/30 · 2024 Mustang Mach-E SR RWD</p>
+<p class="subtitle">Homewood, IL &middot; Res Hourly Single &ndash; TOD &middot; America/Chicago &middot; Weighted 70/30 &middot; 2024 Mustang Mach-E SR RWD</p>
 
-<!-- Feed Status -->
-<div class="grid" id="status-cards">
-  <div class="card">
-    <div class="card-label">Feed Updated</div>
-    <div class="card-value accent" id="stat-updated">—</div>
-    <div class="card-sub" id="stat-coverage">—</div>
-  </div>
-  <div class="card">
-    <div class="card-label">Records</div>
-    <div class="card-value blue" id="stat-count">—</div>
-    <div class="card-sub">Rolling 60-day 5-minute feed</div>
-  </div>
-  <div class="card">
-    <div class="card-label">Negative Intervals</div>
-    <div class="card-value green" id="stat-neg">—</div>
-    <div class="card-sub" id="stat-neg-recent">—</div>
-  </div>
-  <div class="card">
-    <div class="card-label">Weight Model</div>
-    <div class="card-value yellow">70 / 30</div>
-    <div class="card-sub">70% recent 5 days, 30% older history</div>
-  </div>
+<div class="grid">
+  <div class="card"><div class="card-label">Feed Updated</div><div class="card-value accent" id="stat-updated">&mdash;</div><div class="card-sub" id="stat-coverage">&mdash;</div></div>
+  <div class="card"><div class="card-label">Records</div><div class="card-value blue" id="stat-count">&mdash;</div><div class="card-sub">Rolling 60-day 5-minute feed</div></div>
+  <div class="card"><div class="card-label">Negative Intervals</div><div class="card-value green" id="stat-neg">&mdash;</div><div class="card-sub" id="stat-neg-recent">&mdash;</div></div>
+  <div class="card"><div class="card-label">Weight Model</div><div class="card-value yellow">70 / 30</div><div class="card-sub">70% recent 5 days, 30% older history</div></div>
 </div>
 
-<!-- Plug-in Calculator -->
 <section>
   <h2>Plug-In Charging Calculator</h2>
   <div class="calc-card">
-    <h3>2024 Mustang Mach-E SR RWD &nbsp;·&nbsp; 68 kWh usable &nbsp;·&nbsp; ChargePoint 40A @ 9.6 kW</h3>
+    <h3>2024 Mustang Mach-E SR RWD &middot; 68 kWh usable &middot; ChargePoint 40A @ 9.6 kW</h3>
     <div class="calc-row">
-      abel>Current battery %</label>
-      <input type="range" class="calc-slider" id="sl-current" min="5" max="95" value="30"
-        oninput="document.getElementById('val-current').textContent=this.value+'%'">
+      <span class="clabel">Current battery %</span>
+      <input type="range" class="calc-slider" id="sl-current" min="5" max="95" value="30" oninput="syncI('sl-current','num-current','val-current')">
       <span class="calc-pct" id="val-current">30%</span>
-      <input type="number" class="calc-input" id="num-current" min="5" max="95" value="30"
-        oninput="document.getElementById('sl-current').value=this.value;document.getElementById('val-current').textContent=this.value+'%'">
+      <input type="number" class="calc-input" id="num-current" min="5" max="95" value="30" oninput="syncS('num-current','sl-current','val-current')">
     </div>
     <div class="calc-row">
-      abel>Target charge %</label>
-      <input type="range" class="calc-slider" id="sl-target" min="50" max="100" value="90"
-        oninput="document.getElementById('val-target').textContent=this.value+'%'">
+      <span class="clabel">Target charge %</span>
+      <input type="range" class="calc-slider" id="sl-target" min="50" max="100" value="90" oninput="syncI('sl-target','num-target','val-target')">
       <span class="calc-pct" id="val-target">90%</span>
-      <input type="number" class="calc-input" id="num-target" min="50" max="100" value="90"
-        oninput="document.getElementById('sl-target').value=this.value;document.getElementById('val-target').textContent=this.value+'%'">
+      <input type="number" class="calc-input" id="num-target" min="50" max="100" value="90" oninput="syncS('num-target','sl-target','val-target')">
     </div>
     <div class="calc-row">
-      abel>Must be ready by</label>
+      <span class="clabel">Must be ready by</span>
       <input type="time" class="calc-input" id="ready-time" value="07:00" style="width:110px;">
       <span style="color:var(--muted);font-size:0.8rem;">Chicago time</span>
     </div>
     <button class="calc-btn" onclick="runCalc()">Calculate Charging Plan</button>
-
     <div class="calc-results" id="calc-results">
       <div class="result-grid">
-        <div class="result-chip">
-          <div class="rlabel">kWh Needed</div>
-          <div class="rval green" id="r-kwh">—</div>
-        </div>
-        <div class="result-chip">
-          <div class="rlabel">Wall Draw</div>
-          <div class="rval blue" id="r-wall">—</div>
-        </div>
-        <div class="result-chip">
-          <div class="rlabel">Charge Time</div>
-          <div class="rval yellow" id="r-time">—</div>
-        </div>
-        <div class="result-chip">
-          <div class="rlabel">Miles Added</div>
-          <div class="rval accent" id="r-miles">—</div>
-        </div>
-        <div class="result-chip">
-          <div class="rlabel">Est. Session Cost</div>
-          <div class="rval orange" id="r-cost">—</div>
-        </div>
-        <div class="result-chip">
-          <div class="rlabel">Cost per Mile</div>
-          <div class="rval purple" id="r-cpm">—</div>
-        </div>
+        <div class="result-chip"><div class="rlabel">kWh Needed</div><div class="rval green" id="r-kwh">&mdash;</div></div>
+        <div class="result-chip"><div class="rlabel">Wall Draw</div><div class="rval blue" id="r-wall">&mdash;</div></div>
+        <div class="result-chip"><div class="rlabel">Charge Time</div><div class="rval yellow" id="r-time">&mdash;</div></div>
+        <div class="result-chip"><div class="rlabel">Miles Added</div><div class="rval accent" id="r-miles">&mdash;</div></div>
+        <div class="result-chip"><div class="rlabel">Est. Session Cost</div><div class="rval orange" id="r-cost">&mdash;</div></div>
+        <div class="result-chip"><div class="rlabel">Cost per Mile</div><div class="rval purple" id="r-cpm">&mdash;</div></div>
       </div>
       <div id="rec-output"></div>
     </div>
   </div>
 </section>
 
-<!-- All-in Price Averages -->
 <section>
   <h2>All-In Price Averages (Supply + TOD Delivery)</h2>
   <div class="grid">
-    <div class="card">
-      <div class="card-label">Overnight All-In Avg (9 PM–6 AM)</div>
-      <div class="card-value green" id="allin-overnight">—</div>
-      <div class="card-sub">Market + 3.311¢ delivery + 1.145¢ fixed adders</div>
-    </div>
-    <div
+    <div class="card"><div class="card-label">Overnight All-In Avg (9 PM&ndash;6 AM)</div><div class="card-value green" id="allin-overnight">&mdash;</div><div class="card-sub">Market + 3.311&cent; delivery + 1.145&cent; fixed adders</div></div>
+    <div class="card"><div class="card-label">Morning All-In Avg (6 AM&ndash;1 PM)</div><div class="card-value yellow" id="allin-morning">&mdash;</div><div class="card-sub">Market + 4.428&cent; delivery + 1.145&cent; fixed adders</div></div>
+    <div class="card"><div class="card-label">Midday Peak All-In Avg (1 PM&ndash;7 PM)</div><div class="card-value red" id="allin-midday">&mdash;</div><div class="card-sub">Market + 11.727&cent; delivery + 1.145&cent; fixed adders</div></div>
+    <div class="card"><div class="card-label">Evening All-In Avg (7 PM&ndash;9 PM)</div><div class="card-value yellow" id="allin-evening">&mdash;</div><div class="card-sub">Market + 4.142&cent; delivery + 1.145&cent; fixed adders</div></div>
+  </div>
+  <p class="note">Delivery rates from June 2026 ComEd bill (Single-Family Non-Electric Heat TOD). Fixed supply adders: Transmission 1.083&cent; + Misc Procurement 0.062&cent; = 1.145&cent;/kWh.</p>
+</section>
+
+<section>
+  <h2>Best Overnight Charging Windows (Weighted Supply Price)</h2>
+  <div class="grid">
+    <div class="card"><div class="card-label">Best 2-Hour Target</div><div class="card-value green" id="best2h-window">&mdash;</div><div class="card-sub" id="best2h-avg">&mdash;</div></div>
+    <div class="card"><div class="card-label">Best 3-Hour Target</div><div class="card-value green" id="best3h-window">&mdash;</div><div class="card-sub" id="best3h-avg">&mdash;</div></div>
+    <div class="card"><div class="card-label">Best 4-Hour Target</div><div class="card-value green" id="best4h-window">&mdash;</div><div class="card-sub" id="best4h-avg">&mdash;</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Tomorrow &ndash; Day-Ahead 3-Hour Suggestion</h2>
+  <div id="tomorrow-panel" class="card"><span class="loading">Fetching day-ahead prices&hellip;</span></div>
+  <p class="note">ComEd day-ahead prices published ~4:30 PM CT. Before that time this panel may show unavailable. Day-ahead prices are indicative only; billing uses real-time hourly prices.</p>
+</section>
+
+<section>
+  <h2>Top 10 Ranked Overnight Slots (30-min buckets, weighted avg)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Time (Chicago)</th><th>Weighted Avg</th><th>All-In Est.</th><th>Signal</th></tr></thead>
+    <tbody id="top10-body"><tr><td colspan="5" class="loading">Loading&hellip;</td></tr></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Overnight Slots to Avoid</h2>
+  <table>
+    <thead><tr><th>Time (Chicago)</th><th>Weighted Avg</th><th>All-In Est.</th><th>Signal</th></tr></thead>
+    <tbody id="worst-body"><tr><td colspan="4" class="loading">Loading&hellip;</td></tr></tbody>
+  </table>
+</section>
+
+<div class="disclaimer"><strong>Disclaimer:</strong> This tool uses ComEd's public 5-minute real-time pricing feed and bill-derived delivery rates for informational purposes only. Actual billing depends on your specific rate class, taxes, fees, and capacity charges. Data updated ~every 15 minutes via GitHub Actions. Not financial or energy advice.</div>
+
+<script>
+const FEED_URL='./data/comed_5min_rolling_60d.json';
+const JINA='https://r.jina.ai/https://hourlypricing.comed.com/live-prices/day-ahead-prices/';
+const RECENT_DAYS=5,W_RECENT=0.70,W_OLDER=0.30;
+const USABLE_KWH=68,CHARGER_KW=9.6,CHARGE_EFF=0.90,MILES_PER_KWH=3.0;
+const DELIVERY={overnight:3.311,morning:4.428,midday:11.727,evening:4.142};
+const FIXED_ADDER=1.083+0.062;
+const OVN_START=21*60,OVN_END=6*60;
+
+function toChiMin(iso){
+  const d=new Date(iso);
+  const s=d.toLocaleString('en-US',{timeZone:'America/Chicago',hour12:false,hour:'2-digit',minute:'2-digit'});
+  const [h,m]=s.split(':');
+  let hh=parseInt(h,10);if(hh===24)hh=0;
+  return hh*60+parseInt(m,10);
+}
+function inOvn(m){return m>=OVN_START||m<OVN_END;}
+function delAdder(m){
+  if(inOvn(m))return DELIVERY.overnight;
+  if(m>=6*60&&m<13*60)return DELIVERY.morning;
+  if(m>=13*60&&m<19*60)return DELIVERY.midday;
+  if(m>=19*60&&m<21*60)return DELIVERY.evening;
+  return DELIVERY.overnight;
+}
+function allIn(price,m){return price+delAdder(m)+FIXED_ADDER;}
+function fmtMin(m){
+  const mm=((m%1440)+1440)%1440;
+  const h=Math.floor(mm/60)%12||12;
+  const min=String(mm%60).padStart(2,'0');
+  const ap=Math.floor(mm/60)<12?'AM':'PM';
+  return `${h}:${min} ${ap}`;
+}
+function fmtDate(iso){
+  return new Date(iso).toLocaleString('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function signal(p){
+  if(p<0)return '<span class="badge badge-green">Excellent</span>';
+  if(p<3)return '<span class="badge badge-green">Very Good</span>';
+  if(p<6)return '<span class="badge badge-blue">Good</span>';
+  if(p<10)return '<span class="badge badge-yellow">Fair</span>';
+  return '<span class="badge badge-red">Avoid</span>';
+}
+function syncI(sid,nid,vid){const v=document.getElementById(sid).value;document.getElementById(nid).value=v;document.getElementById(vid).textContent=v+'%';}
+function syncS(nid,sid,vid){const v=document.getElementById(nid).value;document.getElementById(sid).value=v;document.getElementById(vid).textContent=v+'%';}
+
+function bestWindow(slots,hours){
+  const steps=hours*2;
+  let best=null;
+  for(let i=0;i<=slots.length-steps;i++){
+    const slice=slots.slice(i,i+steps);
+    let ok=true;
+    for(let j=1;j<slice.length;j++){
+      const diff=(slice[j].min-slice[j-1].min+1440)%1440;
+      if(diff!==30){ok=false;break;}
+    }
+    if(!ok)continue;
+    const avg=slice.reduce((a,b)=>a+b.wavg,0)/slice.length;
+    if(!best||avg<best.avg)best={start:slice[0].min,end:(slice[slice.length-1].min+30)%1440,avg};
+  }
+  return best;
+}
+
+async function loadFeed(){
+  const r=await fetch(FEED_URL+'?v='+Date.now());
+  if(!r.ok)throw new Error('Feed HTTP '+r.status);
+  return r.json();
+}
+
+function processData(data){
+  const items=data.items||[];
+  const now=Date.now();
+  const recentCut=now-RECENT_DAYS*86400000;
+  const negCount=items.filter(x=>x.price<0).length;
+  const negRecent=items.filter(x=>x.price<0&&parseInt(x.millisUTC)>=recentCut).length;
+
+  document.getElementById('stat-updated').textContent=fmtDate(data.updated_at);
+  document.getElementById('stat-coverage').textContent='Coverage '+fmtDate(data.coverage_start)+' \u2192 '+fmtDate(data.coverage_end);
+  document.getElementById('stat-count').textContent=data.item_count.toLocaleString();
+  document.getElementById('stat-neg').textContent=negCount.toLocaleString();
+  document.getElementById('stat-neg-recent').textContent=negRecent+' in the recent 5-day weighting window';
+
+  // All-in averages by TOD bucket
+  const buckets={overnight:[],morning:[],midday:[],evening:[]};
+  items.forEach(x=>{
+    const m=toChiMin(x.ts_utc);
+    const ai=allIn(x.price,m);
+    if(inOvn(m))buckets.overnight.push(ai);
+    else if(m>=6*60&&m<13*60)buckets.morning.push(ai);
+    else if(m>=13*60&&m<19*60)buckets.midday.push(ai);
+    else if(m>=19*60&&m<21*60)buckets.evening.push(ai);
+  });
+  const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2)+'¢/kWh':'—';
+  document.getElementById('allin-overnight').textContent=avg(buckets.overnight);
+  document.getElementById('allin-morning').textContent=avg(buckets.morning);
+  document.getElementById('allin-midday').textContent=avg(buckets.midday);
+  document.getElementById('allin-evening').textContent=avg(buckets.evening);
+
+  // Weighted overnight slots
+  const slotMap={};
+  items.forEach(x=>{
+    const ms=parseInt(x.millisUTC);
+    const m=toChiMin(x.ts_utc);
+    if(!inOvn(m))return;
+    const key=Math.floor(m/30)*30;
+    const isRecent=ms>=recentCut;
+    if(!slotMap[key])slotMap[key]={min:key,rsum:0,rcnt:0,osum:0,ocnt:0};
+    if(isRecent){slotMap[key].rsum+=x.price;slotMap[key].rcnt++;}
+    else{slotMap[key].osum+=x.price;slotMap[key].ocnt++;}
+  });
+  const slots=Object.values(slotMap).map(s=>{
+    const ra=s.rcnt?s.rsum/s.rcnt:null;
+    const oa=s.ocnt?s.osum/s.ocnt:null;
+    let wavg;
+    if(ra!==null&&oa!==null)wavg=W_RECENT*ra+W_OLDER*oa;
+    else if(ra!==null)wavg=ra;
+    else wavg=oa;
+    return{min:s.min,wavg};
+  }).sort((a,b)=>a.min-b.min);
+
+  // Best windows
+  [2,3,4].forEach(h=>{
+    const w=bestWindow(slots,h);
+    if(w){
+      document.getElementById('best'+h+'h-window').textContent=fmtMin(w.start)+'\u2013'+fmtMin(w.end);
+      document.getElementById('best'+h+'h-avg').textContent='Weighted avg '+w.avg.toFixed(2)+'¢/kWh';
+    }
+  });
+
+  // Top 10
+  const sorted=[...slots].sort((a,b)=>a.wavg-b.wavg);
+  const top10=sorted.slice(0,10);
+  const worst=sorted.slice(-5).reverse();
+  document.getElementById('top10-body').innerHTML=top10.map((s,i)=>`
+    <tr><td>${i+1}</td><td>${fmtMin(s.min)}\u2013${fmtMin((s.min+30)%1440)}</td>
+    <td class="${s.wavg<0?'green':s.wavg<5?'accent':'yellow'}">${s.wavg.toFixed(2)}¢</td>
+    <td>${allIn(s.wavg,s.min).toFixed(2)}¢</td><td>${signal(s.wavg)}</td></tr>`).join('');
+  document.getElementById('worst-body').innerHTML=worst.map(s=>`
+    <tr><td>${fmtMin(s.min)}\u2013${fmtMin((s.min+30)%1440)}</td>
+    <td class="red">${s.wavg.toFixed(2)}¢</td>
+    <td class="red">${allIn(s.wavg,s.min).toFixed(2)}¢</td><td>${signal(s.wavg)}</td></tr>`).join('');
+
+  // Store slots for calculator
+  window._slots=slots;
+}
+
+async function loadTomorrow(){
+  const panel=document.getElementById('tomorrow-panel');
+  try{
+    const r=await fetch(JINA,{headers:{'Accept':'text/plain'}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const txt=await r.text();
+    const rows=[...txt.matchAll(/\|\s*(\d{1,2}:\d{2}\s*[AP]M)\s*\|\s*([-\d.]+)/gi)];
+    if(!rows.length)throw new Error('No data yet');
+    const parsed=rows.map(m=>({
+      label:m[1].trim(),
+      price:parseFloat(m[2])
+    })).filter(x=>isFinite(x.price));
+    if(!parsed.length)throw new Error('No parseable rows');
+
+    function hm(label){
+      const m=label.match(/(\d{1,2}):(\d{2})\s*([AP]M)/i);
+      if(!m)return null;
+      let h=parseInt(m[1],10)%12;
+      if(m[3].toUpperCase()==='PM')h+=12;
+      return h*60+parseInt(m[2],10);
+    }
+    const ovn=parsed.map(x=>({...x,min:hm(x.label)})).filter(x=>x.min!==null&&inOvn(x.min));
+    ovn.sort((a,b)=>a.min-b.min);
+    let best=null;
+    for(let i=0;i<=ovn.length-3;i++){
+      const sl=ovn.slice(i,i+3);
+      let ok=true;
+      for(let j=1;j<sl.length;j++){if(((sl[j-1].min+60)%1440)!==sl[j].min){ok=false;break;}}
+      if(!ok)continue;
+      const avg=sl.reduce((a,b)=>a+b.price,0)/3;
+      if(!best||avg<best.avg)best={start:sl[0].min,end:(sl[2].min+60)%1440,avg,labels:sl.map(x=>x.label)};
+    }
+    if(best){
+      panel.innerHTML=`
+        <div class="card-label">Recommended 3-Hour Window Tomorrow</div>
+        <div class="card-value green">${fmtMin(best.start)}&ndash;${fmtMin(best.end)}</div>
+        <div class="card-sub">Day-ahead avg ${best.avg.toFixed(2)}¢/kWh &middot; Hours: ${best.labels.join(', ')}</div>
+        <div class="card-sub" style="margin-top:6px;">All-in est. ${allIn(best.avg,best.start).toFixed(2)}¢/kWh &middot; ${signal(best.avg)}</div>`;
+    } else {
+      panel.innerHTML='<span style="color:var(--muted)">No overnight 3-hour block found in tomorrow\'s day-ahead data.</span>';
+    }
+  }catch(e){
+    panel.innerHTML='<span style="color:var(--muted)">Day-ahead data unavailable (published ~4:30 PM CT): '+e.message+'</span>';
+  }
+}
+
+function runCalc(){
+  const cur=parseInt(document.getElementById('num-current').value,10);
+  const tgt=parseInt(document.getElementById('num-target').value,10);
+  const readyVal=document.getElementById('ready-time').value||'07:00';
+  const [rh,rm]=readyVal.split(':').map(Number);
+  const readyMin=rh*60+rm;
+
+  if(tgt<=cur){
+    document.getElementById('rec-output').innerHTML='<div class="warn-box"><div class="rec-title">Notice</div><div class="warn-main">Target % must be higher than current %.</div></div>';
+    document.getElementById('calc-results').classList.add('visible');
+    return;
+  }
+
+  const kwhNeeded=USABLE_KWH*(tgt-cur)/100;
+  const wallKwh=kwhNeeded/CHARGE_EFF;
+  const hoursNeeded=wallKwh/CHARGER_KW;
+  const minsNeeded=Math.ceil(hoursNeeded*60);
+  const milesAdded=kwhNeeded*MILES_PER_KWH;
+
+  // Latest possible start = readyMin - minsNeeded
+  const latestStart=((readyMin-minsNeeded)+1440)%1440;
+
+  document.getElementById('r-kwh').textContent=kwhNeeded.toFixed(1)+' kWh';
+  document.getElementById('r-wall').textContent=wallKwh.toFixed(1)+' kWh';
+  document.getElementById('r-time').textContent=Math.floor(hoursNeeded)+'h '+Math.round((hoursNeeded%1)*60)+'m';
+  document.getElementById('r-miles').textContent=milesAdded.toFixed(1)+' mi';
+
+  // Estimate cost using overnight all-in rate
+  const overnightAllIn=allIn(2.0,OVN_START); // use typical overnight market ~2¢
+  const sessionCost=wallKwh*overnightAllIn/100;
+  const costPerMile=sessionCost/milesAdded;
+  document.getElementById('r-cost').textContent='$'+sessionCost.toFixed(2);
+  document.getElementById('r-cpm').textContent=(costPerMile*100).toFixed(1)+'¢/mi';
+
+  // Find best window that fits charge duration
+  const slots=window._slots||[];
+  const stepsNeeded=Math.ceil(minsNeeded/30);
+  let bestW=null;
+  const ovnSlots=slots.filter(s=>inOvn(s.min));
+
+  for(let i=0;i<=ovnSlots.length-stepsNeeded;i++){
+    const slice=ovnSlots.slice(i,i+stepsNeeded);
+    let ok=true;
+    for(let j=1;j<slice.length;j++){
+      const diff=(slice[j].min-slice[j-1].min+1440)%1440;
+      if(diff!==30){ok=false;break;}
+    }
+    if(!ok)continue;
+    // Check it finishes before ready time
+    const endMin=(slice[slice.length-1].min+30)%1440;
+    const startMin=slice[0].min;
+    // Convert both to absolute minutes handling midnight crossing
+    let finishesOk=false;
+    if(readyMin<=6*60){
+      // ready time is early morning - end must be before readyMin next day
+      finishesOk=endMin<=readyMin||endMin>=OVN_START;
+    } else {
+      finishesOk=endMin<=readyMin;
+    }
+    const avg=slice.reduce((a,b)=>a+b.wavg,0)/slice.length;
+    if(!bestW||avg<bestW.avg) bestW={start:startMin,end:endMin,avg,steps:stepsNeeded};
+  }
+
+  const recOut=document.getElementById('rec-output');
+  if(bestW){
+    const aiEst=allIn(bestW.avg,bestW.start);
+    const totalCost=wallKwh*aiEst/100;
+    recOut.innerHTML=`
+      <div class="rec-box">
+        <div class="rec-title">Recommended Charging Window</div>
+        <div class="rec-main">${fmtMin(bestW.start)} &ndash; ${fmtMin(bestW.end)}</div>
+        <div class="rec-sub">Weighted avg supply ${bestW.avg.toFixed(2)}&cent;/kWh &middot; All-in est. ${aiEst.toFixed(2)}&cent;/kWh</div>
+        <div class="rec-sub">Est. session cost <strong>$${totalCost.toFixed(2)}</strong> &middot; ${milesAdded.toFixed(0)} miles added &middot; ${(totalCost/milesAdded*100).toFixed(1)}&cent;/mile</div>
+        <div class="rec-sub" style="margin-top:4px;">Latest plug-in: <strong>${fmtMin(((readyMin-minsNeeded)+1440)%1440)}</strong> to finish by ${fmtMin(readyMin)}</div>
+      </div>`;
+  } else {
+    recOut.innerHTML=`
+      <div class="warn-box">
+        <div class="rec-title">Notice</div>
+        <div class="warn-main">Not enough overnight data to find a ${Math.ceil(minsNeeded/60)}h window before ${fmtMin(readyMin)}.</div>
+        <div class="rec-sub">Latest possible start: ${fmtMin(latestStart)} to finish by ${fmtMin(readyMin)}.</div>
+      </div>`;
+  }
+  document.getElementById('calc-results').classList.add('visible');
+}
+
+async function init(){
+  try{
+    const data=await loadFeed();
+    processData(data);
+  }catch(e){
+    document.getElementById('stat-updated').textContent='Error loading feed';
+    console.error(e);
+  }
+  loadTomorrow();
+}
+
+init();
+</script>
+</body>
+</html>
