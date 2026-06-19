@@ -1,464 +1,183 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ComEd Overnight EV Charging Planner</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ComEd EV Charging Planner – Homewood IL</title>
   <style>
     :root {
-      --bg: #0b1220;
-      --panel: #111827;
-      --text: #e5eefc;
-      --muted: #94a3b8;
-      --blue: #38bdf8;
-      --green: #22c55e;
-      --orange: #f59e0b;
-      --red: #ef4444;
-      --border: rgba(148,163,184,.18);
+      --bg: #0b1220; --card: #111827; --border: #1e293b;
+      --text: #f1f5f9; --muted: #94a3b8;
+      --green: #86efac; --red: #fca5a5; --blue: #93c5fd;
+      --yellow: #fde68a; --purple: #c4b5fd; --accent: #38bdf8;
+      --orange: #fdba74;
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: linear-gradient(180deg, #08101d 0%, #0f172a 100%);
-      color: var(--text);
-      line-height: 1.45;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px; padding: 16px; max-width: 960px; margin: 0 auto;
     }
-    .wrap { max-width: 1240px; margin: 0 auto; padding: 24px; }
-    h1 { font-size: 32px; margin: 0 0 8px; }
-    .sub { color: var(--muted); margin-bottom: 24px; }
-    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
-    .card {
-      grid-column: span 12;
-      background: rgba(17,24,39,.88);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 0 12px 32px rgba(0,0,0,.22);
+    h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: 4px; }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .card-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 6px; }
+    .card-value { font-size: 1.35rem; font-weight: 700; }
+    .card-sub { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+    .green { color: var(--green); } .red { color: var(--red); }
+    .blue { color: var(--blue); } .yellow { color: var(--yellow); }
+    .purple { color: var(--purple); } .accent { color: var(--accent); }
+    .orange { color: var(--orange); }
+    section { margin-bottom: 24px; }
+    section h2 { font-size: 1rem; color: var(--accent); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; color: var(--muted); font-weight: 600; padding: 6px 10px; border-bottom: 1px solid var(--border); font-size: 0.75rem; text-transform: uppercase; }
+    td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+    .badge { display: inline-block; font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+    .badge-green { background: rgba(134,239,172,0.15); color: var(--green); }
+    .badge-red { background: rgba(252,165,165,0.15); color: var(--red); }
+    .badge-yellow { background: rgba(253,230,138,0.15); color: var(--yellow); }
+    .badge-blue { background: rgba(147,197,253,0.15); color: var(--blue); }
+    .badge-orange { background: rgba(253,186,116,0.15); color: var(--orange); }
+    .note { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+    .disclaimer { font-size: 0.75rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 24px; }
+    .loading { color: var(--muted); font-style: italic; }
+
+    /* Plug-in Calculator */
+    .calc-card { background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 20px; }
+    .calc-card h3 { color: var(--accent); font-size: 1rem; margin-bottom: 16px; }
+    .calc-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .calc-row label { color: var(--muted); font-size: 0.82rem; min-width: 160px; }
+    .calc-input {
+      background: #1e293b; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); font-size: 1rem; padding: 6px 10px; width: 80px;
+      text-align: center;
     }
-    .kpi { grid-column: span 3; }
-    .wide { grid-column: span 8; }
-    .side { grid-column: span 4; }
-    .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
-    .value { font-size: 28px; font-weight: 700; margin-top: 8px; }
-    .small { color: var(--muted); font-size: 13px; margin-top: 6px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
-    .tag { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .bars { display: grid; gap: 10px; margin-top: 10px; }
-    .bar-row { display: grid; grid-template-columns: 120px 1fr 72px; gap: 12px; align-items: center; }
-    .bar {
-      height: 12px; border-radius: 999px; overflow: hidden;
-      background: rgba(148,163,184,.14);
+    .calc-input:focus { outline: 1px solid var(--accent); }
+    .calc-slider { width: 160px; accent-color: var(--accent); }
+    .calc-pct { color: var(--accent); font-weight: 700; min-width: 40px; }
+    .calc-btn {
+      background: var(--accent); color: #0b1220; border: none; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 700; padding: 10px 24px; cursor: pointer;
+      margin-top: 4px;
     }
-    .bar > span { display: block; height: 100%; background: linear-gradient(90deg, #22c55e, #38bdf8); }
-    .error { color: #fecaca; white-space: pre-wrap; }
-    .bg-blue { background: rgba(56,189,248,.14); border-color: rgba(56,189,248,.4); }
-    .bg-green { background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.4); }
-    .bg-orange { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.4); }
-    .bg-red { background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.4); }
-    .text-blue { color: #7dd3fc; }
-    .text-green { color: #86efac; }
-    .text-orange { color: #fcd34d; }
-    .text-red { color: #fca5a5; }
-    .tag-blue { background: rgba(56,189,248,.16); color: #7dd3fc; }
-    .tag-green { background: rgba(34,197,94,.16); color: #86efac; }
-    .tag-orange { background: rgba(245,158,11,.16); color: #fcd34d; }
-    .tag-red { background: rgba(239,68,68,.16); color: #fca5a5; }
-    @media (max-width: 980px) {
-      .kpi, .wide, .side { grid-column: span 12; }
-      .bar-row { grid-template-columns: 96px 1fr 72px; }
-    }
+    .calc-btn:hover { background: #7dd3fc; }
+    .calc-results { margin-top: 16px; display: none; }
+    .calc-results.visible { display: block; }
+    .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .result-chip { background: #1e293b; border-radius: 8px; padding: 10px 12px; }
+    .result-chip .rlabel { font-size: 0.68rem; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .result-chip .rval { font-size: 1.1rem; font-weight: 700; }
+    .rec-box { background: #1e293b; border-left: 3px solid var(--green); border-radius: 0 8px 8px 0; padding: 12px 14px; margin-top: 10px; }
+    .rec-box .rec-title { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .rec-box .rec-main { font-size: 1.1rem; font-weight: 700; color: var(--green); }
+    .rec-box .rec-sub { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+    .warn-box { background: #1e293b; border-left: 3px solid var(--yellow); border-radius: 0 8px 8px 0; padding: 12px 14px; margin-top: 10px; }
+    .warn-box .rec-title { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .warn-box .rec-main { font-size: 1rem; font-weight: 700; color: var(--yellow); }
+    .warn-box .rec-sub { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Overnight EV Charging Planner</h1>
-    <div class="sub">Chicago-local overnight ranking from your rolling ComEd 5-minute feed, plus bill-based all-in estimates using your actual ComEd TOD delivery charges and fixed supply adders from the attached bill.</div>
-    <div class="grid" id="app">
-      <div class="card">Loading feed...</div>
+
+<h1>ComEd EV Charging Planner</h1>
+<p class="subtitle">Homewood, IL &nbsp;·&nbsp; Res Hourly Single – TOD &nbsp;·&nbsp; America/Chicago &nbsp;·&nbsp; Weighted 70/30 · 2024 Mustang Mach-E SR RWD</p>
+
+<!-- Feed Status -->
+<div class="grid" id="status-cards">
+  <div class="card">
+    <div class="card-label">Feed Updated</div>
+    <div class="card-value accent" id="stat-updated">—</div>
+    <div class="card-sub" id="stat-coverage">—</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Records</div>
+    <div class="card-value blue" id="stat-count">—</div>
+    <div class="card-sub">Rolling 60-day 5-minute feed</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Negative Intervals</div>
+    <div class="card-value green" id="stat-neg">—</div>
+    <div class="card-sub" id="stat-neg-recent">—</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Weight Model</div>
+    <div class="card-value yellow">70 / 30</div>
+    <div class="card-sub">70% recent 5 days, 30% older history</div>
+  </div>
+</div>
+
+<!-- Plug-in Calculator -->
+<section>
+  <h2>Plug-In Charging Calculator</h2>
+  <div class="calc-card">
+    <h3>2024 Mustang Mach-E SR RWD &nbsp;·&nbsp; 68 kWh usable &nbsp;·&nbsp; ChargePoint 40A @ 9.6 kW</h3>
+    <div class="calc-row">
+      abel>Current battery %</label>
+      <input type="range" class="calc-slider" id="sl-current" min="5" max="95" value="30"
+        oninput="document.getElementById('val-current').textContent=this.value+'%'">
+      <span class="calc-pct" id="val-current">30%</span>
+      <input type="number" class="calc-input" id="num-current" min="5" max="95" value="30"
+        oninput="document.getElementById('sl-current').value=this.value;document.getElementById('val-current').textContent=this.value+'%'">
+    </div>
+    <div class="calc-row">
+      abel>Target charge %</label>
+      <input type="range" class="calc-slider" id="sl-target" min="50" max="100" value="90"
+        oninput="document.getElementById('val-target').textContent=this.value+'%'">
+      <span class="calc-pct" id="val-target">90%</span>
+      <input type="number" class="calc-input" id="num-target" min="50" max="100" value="90"
+        oninput="document.getElementById('sl-target').value=this.value;document.getElementById('val-target').textContent=this.value+'%'">
+    </div>
+    <div class="calc-row">
+      abel>Must be ready by</label>
+      <input type="time" class="calc-input" id="ready-time" value="07:00" style="width:110px;">
+      <span style="color:var(--muted);font-size:0.8rem;">Chicago time</span>
+    </div>
+    <button class="calc-btn" onclick="runCalc()">Calculate Charging Plan</button>
+
+    <div class="calc-results" id="calc-results">
+      <div class="result-grid">
+        <div class="result-chip">
+          <div class="rlabel">kWh Needed</div>
+          <div class="rval green" id="r-kwh">—</div>
+        </div>
+        <div class="result-chip">
+          <div class="rlabel">Wall Draw</div>
+          <div class="rval blue" id="r-wall">—</div>
+        </div>
+        <div class="result-chip">
+          <div class="rlabel">Charge Time</div>
+          <div class="rval yellow" id="r-time">—</div>
+        </div>
+        <div class="result-chip">
+          <div class="rlabel">Miles Added</div>
+          <div class="rval accent" id="r-miles">—</div>
+        </div>
+        <div class="result-chip">
+          <div class="rlabel">Est. Session Cost</div>
+          <div class="rval orange" id="r-cost">—</div>
+        </div>
+        <div class="result-chip">
+          <div class="rlabel">Cost per Mile</div>
+          <div class="rval purple" id="r-cpm">—</div>
+        </div>
+      </div>
+      <div id="rec-output"></div>
     </div>
   </div>
+</section>
 
-  <script>
-    const DATA_URL = './data/comed_5min_rolling_60d.json';
-    const DISPLAY_TIMEZONE = 'America/Chicago';
-    const DAY_AHEAD_TOMORROW_URL = 'https://hourlypricing.comed.com/pricing-table-tomorrow/';
-
-    const OVERNIGHT_START_HOUR = 21;
-    const OVERNIGHT_END_HOUR = 9;
-    const SLOT_MINUTES = 30;
-    const RECENT_DAYS = 5;
-    const RECENT_WEIGHT = 0.70;
-    const OLDER_WEIGHT = 0.30;
-
-    const DELIVERY = {
-      morning: 4.428,
-      midday: 11.727,
-      evening: 4.142,
-      overnight: 3.311
-    };
-
-    const FIXED_SUPPLY_ADDER = 1.145;
-
-    function parseTs(s) { return new Date(s); }
-    function fmtNum(n, d=2) { return Number(n).toFixed(d); }
-    function fmtDate(dt) {
-      return dt.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-    }
-    function fmtClockMinutes(mins) {
-      const h = Math.floor(mins / 60) % 24;
-      const m = mins % 60;
-      const ap = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 || 12;
-      return `${h12}:${String(m).padStart(2,'0')} ${ap}`;
-    }
-    function chicagoParts(date) {
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: DISPLAY_TIMEZONE,
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit', hour12: false
-      }).formatToParts(date);
-      const obj = {};
-      for (const p of parts) if (p.type !== 'literal') obj[p.type] = p.value;
-      return obj;
-    }
-    function inOvernight(minutesOfDay) {
-      return minutesOfDay >= OVERNIGHT_START_HOUR * 60 || minutesOfDay < OVERNIGHT_END_HOUR * 60;
-    }
-    function slotLabel(startMins, slotMinutes) {
-      return `${fmtClockMinutes(startMins)}–${fmtClockMinutes((startMins + slotMinutes) % 1440)}`;
-    }
-    function classify(value) {
-      if (value < 0) return ['Excellent', 'tag-blue'];
-      if (value < 2) return ['Good', 'tag-green'];
-      if (value < 5) return ['Moderate', 'tag-orange'];
-      return ['High', 'tag-red'];
-    }
-    function liveColor(value) {
-      if (value < 0) return { card: 'bg-blue', text: 'text-blue', tag: 'tag-blue', label: 'Below 0¢' };
-      if (value < 2) return { card: 'bg-green', text: 'text-green', tag: 'tag-green', label: '0–2¢' };
-      if (value < 5) return { card: 'bg-orange', text: 'text-orange', tag: 'tag-orange', label: '2–5¢' };
-      return { card: 'bg-red', text: 'text-red', tag: 'tag-red', label: 'Above 5¢' };
-    }
-    function deliveryAdder(minutesOfDay) {
-      if (minutesOfDay >= 21 * 60 || minutesOfDay < 6 * 60) return DELIVERY.overnight;
-      if (minutesOfDay >= 6 * 60 && minutesOfDay < 13 * 60) return DELIVERY.morning;
-      if (minutesOfDay >= 13 * 60 && minutesOfDay < 19 * 60) return DELIVERY.midday;
-      return DELIVERY.evening;
-    }
-    function weightedAverage(recentVals, olderVals) {
-      const rMean = recentVals.length ? recentVals.reduce((a,b)=>a+b,0) / recentVals.length : null;
-      const oMean = olderVals.length ? olderVals.reduce((a,b)=>a+b,0) / olderVals.length : null;
-      if (rMean !== null && oMean !== null) return RECENT_WEIGHT * rMean + OLDER_WEIGHT * oMean;
-      if (rMean !== null) return rMean;
-      if (oMean !== null) return oMean;
-      return null;
-    }
-
-    function buildSlots(items) {
-      const latest = new Date(Math.max(...items.map(x => parseTs(x.ts_utc).getTime())));
-      const recentCutoff = new Date(latest.getTime() - RECENT_DAYS * 24 * 60 * 60 * 1000);
-      const slotMap = new Map();
-      let overnightAllIn = [];
-      let daytimeAllIn = [];
-
-      for (const item of items) {
-        const dt = parseTs(item.ts_utc);
-        const cp = chicagoParts(dt);
-        const minutes = Number(cp.hour) * 60 + Number(cp.minute);
-        const adder = deliveryAdder(minutes);
-        const allIn = Number(item.price) + FIXED_SUPPLY_ADDER + adder;
-        if (inOvernight(minutes)) overnightAllIn.push(allIn);
-        else daytimeAllIn.push(allIn);
-
-        if (!inOvernight(minutes)) continue;
-        const slotStart = Math.floor(minutes / SLOT_MINUTES) * SLOT_MINUTES;
-        const key = String(slotStart);
-        if (!slotMap.has(key)) slotMap.set(key, { slotStart, recent: [], older: [], all: [] });
-        const bucket = slotMap.get(key);
-        bucket.all.push(Number(item.price));
-        if (dt >= recentCutoff) bucket.recent.push(Number(item.price));
-        else bucket.older.push(Number(item.price));
-      }
-
-      const slots = Array.from(slotMap.values()).map(s => ({
-        ...s,
-        weighted: weightedAverage(s.recent, s.older),
-        sampleCount: s.all.length,
-        recentCount: s.recent.length,
-        olderCount: s.older.length,
-        label: slotLabel(s.slotStart, SLOT_MINUTES)
-      })).filter(s => s.weighted !== null).sort((a,b) => a.weighted - b.weighted);
-
-      return {
-        slots,
-        latest,
-        recentCutoff,
-        overnightAllInAvg: overnightAllIn.reduce((a,b)=>a+b,0) / overnightAllIn.length,
-        daytimeAllInAvg: daytimeAllIn.reduce((a,b)=>a+b,0) / daytimeAllIn.length
-      };
-    }
-
-    function bestWindow(slots, windowSlots) {
-      let best = null;
-      const ordered = [...slots].sort((a,b)=>a.slotStart-b.slotStart);
-      for (let i=0; i<=ordered.length-windowSlots; i++) {
-        const slice = ordered.slice(i, i + windowSlots);
-        let contiguous = true;
-        for (let j=1; j<slice.length; j++) {
-          const prev = slice[j-1].slotStart;
-          const curr = slice[j].slotStart;
-          if (((prev + SLOT_MINUTES) % 1440) !== curr) { contiguous = false; break; }
-        }
-        if (!contiguous) continue;
-        const score = slice.reduce((a,b)=>a+b.weighted,0) / slice.length;
-        const start = slice[0].slotStart;
-        const end = (slice[slice.length-1].slotStart + SLOT_MINUTES) % 1440;
-        const cand = { score, start, end };
-        if (!best || cand.score < best.score) best = cand;
-      }
-      return best;
-    }
-
-    async function fetchTomorrowDayAhead() {
-      const proxy = 'https://r.jina.ai/http://';
-      const target = DAY_AHEAD_TOMORROW_URL.replace(/^https?:\/\//, '');
-      const r = await fetch(proxy + target);
-      if (!r.ok) throw new Error(`Day-ahead fetch failed: ${r.status}`);
-      const text = await r.text();
-      const rows = [...text.matchAll(/\|\s*(\d{1,2}:\d{2}\s*[AP]M)\s*\|\s*([-\d.]+)¢\s*\|/gi)];
-      return rows.map(m => ({ label: m[1], price: Number(m[2]) })).filter(x => Number.isFinite(x.price));
-    }
-
-    function parseHourLabel(label) {
-      const m = label.match(/(\d{1,2}):(\d{2})\s*([AP]M)/i);
-      if (!m) return null;
-      let h = Number(m[1]) % 12;
-      const min = Number(m[2]);
-      const ap = m[3].toUpperCase();
-      if (ap === 'PM') h += 12;
-      return h * 60 + min;
-    }
-
-    function tomorrowRecommendation(rows) {
-      const overnight = rows.map(r => ({...r, start: parseHourLabel(r.label)})).filter(r => r.start !== null && inOvernight(r.start));
-      overnight.sort((a,b) => a.start - b.start);
-      let best = null;
-      for (let i=0; i<=overnight.length-3; i++) {
-        const slice = overnight.slice(i, i+3);
-        let contiguous = true;
-        for (let j=1; j<slice.length; j++) {
-          if (((slice[j-1].start + 60) % 1440) !== slice[j].start) { contiguous = false; break; }
-        }
-        if (!contiguous) continue;
-        const avg = slice.reduce((a,b)=>a+b.price,0) / slice.length;
-        const cand = { start: slice[0].start, end: (slice[2].start + 60) % 1440, avg };
-        if (!best || avg < best.avg) best = cand;
-      }
-      return best;
-    }
-
-    function topNegatives(items) {
-      return items.filter(x => Number(x.price) < 0).length;
-    }
-
-    async function render(data) {
-      const app = document.getElementById('app');
-      const items = data.items || [];
-      const built = buildSlots(items);
-      const { slots, recentCutoff, overnightAllInAvg, daytimeAllInAvg } = built;
-      const best2h = bestWindow(slots, 4);
-      const best3h = bestWindow(slots, 6);
-      const best4h = bestWindow(slots, 8);
-      const recentNeg = items.filter(x => new Date(x.ts_utc) >= recentCutoff && Number(x.price) < 0).length;
-      const overallNeg = topNegatives(items);
-      const top5 = slots.slice(0, 5);
-      const worst5 = [...slots].sort((a,b)=>b.weighted-a.weighted).slice(0, 5);
-      const minWeighted = Math.min(...slots.map(s=>s.weighted));
-      const maxWeighted = Math.max(...slots.map(s=>s.weighted));
-      const range = Math.max(0.0001, maxWeighted - minWeighted);
-
-      const latestItem = items.reduce((a,b) => new Date(a.ts_utc) > new Date(b.ts_utc) ? a : b);
-      const latestDt = new Date(latestItem.ts_utc);
-      const latestParts = chicagoParts(latestDt);
-      const latestMinutes = Number(latestParts.hour) * 60 + Number(latestParts.minute);
-      const current5m = Number(latestItem.price);
-      const currentAllIn = current5m + FIXED_SUPPLY_ADDER + deliveryAdder(latestMinutes);
-      const current5mColor = liveColor(current5m);
-      const currentAllInColor = liveColor(currentAllIn);
-
-      let tomorrowBlock = `<div class="card side"><div class="label">Tomorrow 3-hour signal</div><div class="value">Unavailable</div><div class="small">Day-ahead hourly prices become available at approximately 4:30 PM CT. [web:257]</div></div>`;
-      try {
-        const tomorrowRows = await fetchTomorrowDayAhead();
-        const bestTomorrow = tomorrowRecommendation(tomorrowRows);
-        if (bestTomorrow) {
-          const cls = classify(bestTomorrow.avg);
-          tomorrowBlock = `
-            <div class="card side">
-              <div class="label">Tomorrow 3-hour signal</div>
-              <div class="value mono">${fmtClockMinutes(bestTomorrow.start)}–${fmtClockMinutes(bestTomorrow.end)}</div>
-              <div class="small">Day-ahead avg ${fmtNum(bestTomorrow.avg)}¢/kWh</div>
-              <div class="small"><span class="tag ${cls[1]}">${cls[0]}</span> Potential change for the following day based on ComEd’s day-ahead hourly prices. [web:251][web:257]</div>
-            </div>`;
-        }
-      } catch (e) {}
-
-      function recCard(title, rec) {
-        if (!rec) return `<div class="card"><div class="label">${title}</div><div class="value">Not enough data</div></div>`;
-        const cls = classify(rec.score);
-        return `
-          <div class="card kpi">
-            <div class="label">${title}</div>
-            <div class="value mono">${fmtClockMinutes(rec.start)}–${fmtClockMinutes(rec.end)}</div>
-            <div class="small">Weighted avg ${fmtNum(rec.score)}¢/kWh</div>
-            <div class="small"><span class="tag ${cls[1]}">${cls[0]}</span></div>
-          </div>`;
-      }
-
-      app.innerHTML = `
-        <div class="card kpi ${current5mColor.card}">
-          <div class="label">Current 5-minute price</div>
-          <div class="value ${current5mColor.text}">${fmtNum(current5m)}¢</div>
-          <div class="small">Latest interval ending ${fmtDate(latestDt)}</div>
-          <div class="small"><span class="tag ${current5mColor.tag}">${current5mColor.label}</span></div>
-        </div>
-
-        <div class="card kpi ${currentAllInColor.card}">
-          <div class="label">Current all-in price</div>
-          <div class="value ${currentAllInColor.text}">${fmtNum(currentAllIn)}¢</div>
-          <div class="small">Current 5-minute price + 1.145¢ fixed supply adders + active TOD delivery rate from your bill. [file:267]</div>
-          <div class="small"><span class="tag ${currentAllInColor.tag}">${currentAllInColor.label}</span></div>
-        </div>
-
-        <div class="card kpi">
-          <div class="label">Feed updated</div>
-          <div class="value">${fmtDate(new Date(data.updated_at))}</div>
-          <div class="small">Coverage ${fmtDate(new Date(data.coverage_start))} → ${fmtDate(new Date(data.coverage_end))}</div>
-        </div>
-        <div class="card kpi">
-          <div class="label">Records</div>
-          <div class="value">${data.item_count.toLocaleString()}</div>
-          <div class="small">Rolling 60-day 5-minute feed</div>
-        </div>
-        <div class="card kpi">
-          <div class="label">Negative intervals</div>
-          <div class="value">${overallNeg.toLocaleString()}</div>
-          <div class="small">${recentNeg.toLocaleString()} in the recent 5-day weighting window</div>
-        </div>
-        <div class="card kpi">
-          <div class="label">Weight model</div>
-          <div class="value">70 / 30</div>
-          <div class="small">70% recent 5 days, 30% older days in the rolling feed</div>
-        </div>
-
-        <div class="card kpi">
-          <div class="label">All-in overnight avg</div>
-          <div class="value">${fmtNum(overnightAllInAvg)}¢</div>
-          <div class="small">Uses your bill’s overnight delivery rate of 3.311¢ and fixed supply adders of 1.145¢. [file:267]</div>
-        </div>
-        <div class="card kpi">
-          <div class="label">All-in daytime avg</div>
-          <div class="value">${fmtNum(daytimeAllInAvg)}¢</div>
-          <div class="small">Uses your bill’s morning 4.428¢, mid-day peak 11.727¢, and evening 4.142¢ delivery rates. [file:267]</div>
-        </div>
-
-        ${recCard('Best 2-hour target', best2h)}
-        ${recCard('Best 3-hour target', best3h)}
-        ${recCard('Best 4-hour target', best4h)}
-
-        <div class="card wide">
-          <div class="label">Best overnight half-hour slots</div>
-          <div class="small">These slot scores use a weighted average of observed 5-minute supply prices for each overnight half-hour bucket in America/Chicago local time. More recent behavior gets 70% of the weight. ComEd says customers on Hourly Pricing can often benefit by shifting use to nights and other lower-priced periods. [web:203]</div>
-          <div class="bars">
-            ${top5.map(s => {
-              const width = 10 + ((maxWeighted - s.weighted) / range) * 90;
-              const cls = classify(s.weighted);
-              return `
-                <div class="bar-row">
-                  <div class="mono">${s.label}</div>
-                  <div class="bar"><span style="width:${width}%"></span></div>
-                  <div><span class="tag ${cls[1]}">${fmtNum(s.weighted)}¢</span></div>
-                </div>`;
-            }).join('')}
-          </div>
-        </div>
-
-        <div class="card side">
-          <div class="label">How the score works</div>
-          <table>
-            <tr><th>Component</th><th>Rule</th></tr>
-            <tr><td>Window</td><td>Overnight only, 9 PM to 9 AM Chicago time</td></tr>
-            <tr><td>Bucket</td><td>30-minute slot</td></tr>
-            <tr><td>Recent weight</td><td>70% from the last 5 days</td></tr>
-            <tr><td>Older weight</td><td>30% from the earlier days in the rolling file</td></tr>
-            <tr><td>Bill-based adders</td><td>1.145¢ fixed supply adders plus your billed TOD delivery schedule</td></tr>
-          </table>
-          <div class="small">Your bill shows transmission at 1.083¢/kWh, misc procurement at 0.062¢/kWh, and TOD delivery rates including 3.311¢ overnight. [file:267]</div>
-        </div>
-
-        ${tomorrowBlock}
-
-        <div class="card wide">
-          <div class="label">Top 10 overnight slots</div>
-          <table>
-            <tr>
-              <th>Rank</th>
-              <th>Slot</th>
-              <th>Weighted avg</th>
-              <th>Recent avg</th>
-              <th>Older avg</th>
-              <th>Samples</th>
-              <th>Status</th>
-            </tr>
-            ${slots.slice(0,10).map((s, idx) => {
-              const recentAvg = s.recentCount ? s.recent.reduce((a,b)=>a+b,0)/s.recentCount : null;
-              const olderAvg = s.olderCount ? s.older.reduce((a,b)=>a+b,0)/s.olderCount : null;
-              const cls = classify(s.weighted);
-              return `
-                <tr>
-                  <td>${idx+1}</td>
-                  <td class="mono">${s.label}</td>
-                  <td>${fmtNum(s.weighted)}¢</td>
-                  <td>${recentAvg === null ? '—' : fmtNum(recentAvg)+'¢'}</td>
-                  <td>${olderAvg === null ? '—' : fmtNum(olderAvg)+'¢'}</td>
-                  <td>${s.sampleCount}</td>
-                  <td><span class="tag ${cls[1]}">${cls[0]}</span></td>
-                </tr>`;
-            }).join('')}
-          </table>
-        </div>
-
-        <div class="card side">
-          <div class="label">Highest-cost overnight slots</div>
-          <table>
-            <tr><th>Slot</th><th>Weighted avg</th></tr>
-            ${worst5.map(s => `
-              <tr>
-                <td class="mono">${s.label}</td>
-                <td>${fmtNum(s.weighted)}¢</td>
-              </tr>`).join('')}
-          </table>
-          <div class="small">Use these as avoid periods for overnight charging unless needed.</div>
-        </div>
-      `;
-    }
-
-    async function main() {
-      const app = document.getElementById('app');
-      try {
-        const r = await fetch(DATA_URL);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        await render(data);
-      } catch (err) {
-        app.innerHTML = `<div class="card"><div class="label">Error</div><div class="error">Could not load dashboard data\n\n${err.message}</div></div>`;
-      }
-    }
-
-    main();
-  </script>
-</body>
-</html>
+<!-- All-in Price Averages -->
+<section>
+  <h2>All-In Price Averages (Supply + TOD Delivery)</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">Overnight All-In Avg (9 PM–6 AM)</div>
+      <div class="card-value green" id="allin-overnight">—</div>
+      <div class="card-sub">Market + 3.311¢ delivery + 1.145¢ fixed adders</div>
+    </div>
+    <div
