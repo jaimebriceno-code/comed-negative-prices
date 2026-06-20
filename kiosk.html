@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComEd Kiosk – Homewood IL</title>
+<style>
+:root{--bg:#0b1220;--card:#111827;--border:#1e293b;--text:#f1f5f9;--muted:#94a3b8;--green:#86efac;--red:#fca5a5;--blue:#93c5fd;--yellow:#fde68a;--accent:#38bdf8;--orange:#fdba74;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+.kiosk{display:flex;height:100vh;width:100vw;}
+.left{flex:0 0 62%;height:100%;border-right:2px solid var(--border);overflow:hidden;}
+.left iframe{width:100%;height:100%;border:none;background:var(--bg);}
+.right{flex:1;height:100%;display:flex;flex-direction:column;gap:0;overflow:hidden;}
+
+/* RIGHT PANEL SECTIONS */
+.rblock{padding:14px 16px;border-bottom:1px solid var(--border);}
+.rblock:last-child{border-bottom:none;flex:1;}
+
+/* LIVE PRICE */
+.live-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;}
+.live-price{font-size:3.8rem;font-weight:800;line-height:1;margin-bottom:4px;}
+.live-sub{font-size:0.8rem;color:var(--muted);}
+.badge{display:inline-block;font-size:0.72rem;padding:3px 10px;border-radius:999px;font-weight:700;margin-top:4px;}
+.badge-green{background:rgba(134,239,172,0.15);color:var(--green);}
+.badge-blue{background:rgba(147,197,253,0.15);color:var(--blue);}
+.badge-yellow{background:rgba(253,230,138,0.15);color:var(--yellow);}
+.badge-red{background:rgba(252,165,165,0.15);color:var(--red);}
+.green{color:var(--green);}.red{color:var(--red);}.blue{color:var(--blue);}.yellow{color:var(--yellow);}.accent{color:var(--accent);}.orange{color:var(--orange);}
+
+/* CHART */
+.chart-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
+.chart-wrap{width:100%;position:relative;}
+svg.pricechart{width:100%;height:140px;display:block;}
+.chart-axis{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted);margin-top:2px;padding:0 2px;}
+
+/* BEST WINDOW */
+.bw-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+.bw-chip{background:#1e293b;border-radius:8px;padding:10px 12px;}
+.bw-label{font-size:0.65rem;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.bw-val{font-size:1.05rem;font-weight:700;}
+
+/* COUNTDOWN */
+.countdown-wrap{text-align:center;padding:10px 0;}
+.countdown-label{font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.countdown-val{font-size:2.2rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;}
+.countdown-sub{font-size:0.75rem;color:var(--muted);margin-top:4px;}
+
+/* REFRESH ROW */
+.refresh-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);background:var(--card);}
+.refresh-btn{background:var(--accent);color:#0b1220;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;padding:7px 18px;cursor:pointer;}
+.refresh-btn:hover{background:#7dd3fc;}
+.refresh-info{font-size:0.72rem;color:var(--muted);}
+
+/* NEGATIVE TICKER */
+.ticker{font-size:0.78rem;padding:6px 16px;background:#0f2027;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+</style>
+</head>
+<body>
+<div class="kiosk">
+
+  <!-- LEFT: existing planner in iframe -->
+  <div class="left">
+    <iframe id="planner-frame" src="./index.html" title="ComEd EV Charging Planner"></iframe>
+  </div>
+
+  <!-- RIGHT: live dashboard -->
+  <div class="right">
+
+    <!-- LIVE PRICE BLOCK -->
+    <div class="rblock">
+      <div class="live-label">Current 5-Min Price &middot; ComEd Real-Time</div>
+      <div class="live-price accent" id="live-price">&mdash;</div>
+      <div class="live-sub" id="live-time">Loading&hellip;</div>
+      <div id="live-badge"></div>
+      <div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">
+        All-in est. (overnight): <span class="green" id="live-allin">&mdash;</span>
+        &nbsp;&middot;&nbsp; vs gas: <span class="accent" id="live-gas">&mdash;</span>
+      </div>
+    </div>
+
+    <!-- NEGATIVE TICKER -->
+    <div class="ticker" id="neg-ticker">Loading recent negative price events&hellip;</div>
+
+    <!-- TODAY'S PRICE CHART -->
+    <div class="rblock">
+      <div class="chart-title">Today&rsquo;s 5-Min Prices &middot; America/Chicago</div>
+      <div class="chart-wrap">
+        <svg class="pricechart" id="price-chart" viewBox="0 0 400 140" preserveAspectRatio="none">
+          <text x="200" y="75" text-anchor="middle" fill="#94a3b8" font-size="12">Loading chart&hellip;</text>
+        </svg>
+      </div>
+      <div class="chart-axis" id="chart-axis"></div>
+    </div>
+
+    <!-- BEST OVERNIGHT WINDOWS -->
+    <div class="rblock">
+      <div class="chart-title">Best Overnight Windows (Weighted 70/30)</div>
+      <div class="bw-grid">
+        <div class="bw-chip"><div class="bw-label">Best 2-Hour</div><div class="bw-val green" id="bw2">&mdash;</div></div>
+        <div class="bw-chip"><div class="bw-label">Best 3-Hour</div><div class="bw-val green" id="bw3">&mdash;</div></div>
+        <div class="bw-chip"><div class="bw-label">Best 4-Hour</div><div class="bw-val green" id="bw4">&mdash;</div></div>
+        <div class="bw-chip"><div class="bw-label">Tonight Avg Supply</div><div class="bw-val accent" id="bw-avg">&mdash;</div></div>
+      </div>
+    </div>
+
+    <!-- COUNTDOWN TO BEST WINDOW -->
+    <div class="rblock">
+      <div class="countdown-wrap">
+        <div class="countdown-label">Time Until Best 3-Hour Window</div>
+        <div class="countdown-val" id="countdown">&mdash;</div>
+        <div class="countdown-sub" id="countdown-sub">&mdash;</div>
+      </div>
+    </div>
+
+    <!-- REFRESH ROW -->
+    <div class="refresh-row">
+      <span class="refresh-info" id="last-refresh">Last refresh: &mdash;</span>
+      <button class="refresh-btn" onclick="location.reload()">&#8635; Refresh</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const LIVE_URL='https://hourlypricing.comed.com/api?type=5minutefeed&format=json';
+const FEED_URL='./data/comed_5min_rolling_60d.json';
+const DELIVERY_OVN=3.311,FIXED_ADDER=1.145;
+const RECENT_DAYS=5,W_RECENT=0.70,W_OLDER=0.30;
+const OVN_START=21*60,OVN_END=6*60;
+const AUTO_REFRESH_MS=5*60*1000;
+
+function toChiMin(iso){
+  const d=new Date(iso);
+  const s=d.toLocaleString('en-US',{timeZone:'America/Chicago',hour12:false,hour:'2-digit',minute:'2-digit'});
+  const [h,m]=s.split(':');let hh=parseInt(h,10);if(hh===24)hh=0;
+  return hh*60+parseInt(m,10);
+}
+function inOvn(m){return m>=OVN_START||m<OVN_END;}
+function fmtMin(m){
+  const mm=((m%1440)+1440)%1440;
+  const h=Math.floor(mm/60)%12||12;
+  const min=String(mm%60).padStart(2,'0');
+  const ap=Math.floor(mm/60)<12?'AM':'PM';
+  return `${h}:${min} ${ap}`;
+}
+function fmtHHMM(ms){
+  const totalSec=Math.max(0,Math.floor(ms/1000));
+  const h=Math.floor(totalSec/3600);
+  const m=Math.floor((totalSec%3600)/60);
+  const s=totalSec%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function signal(p){
+  if(p<0)return['badge-green','Excellent ⚡'];
+  if(p<3)return['badge-green','Very Good'];
+  if(p<6)return['badge-blue','Good'];
+  if(p<10)return['badge-yellow','Fair'];
+  return['badge-red','Avoid'];
+}
+function priceColor(p){
+  if(p<0)return'var(--green)';
+  if(p<3)return'var(--accent)';
+  if(p<8)return'var(--yellow)';
+  return'var(--red)';
+}
+function bestWindow(slots,hours){
+  const steps=hours*2;let best=null;
+  for(let i=0;i<=slots.length-steps;i++){
+    const slice=slots.slice(i,i+steps);let ok=true;
+    for(let j=1;j<slice.length;j++){const diff=(slice[j].min-slice[j-1].min+1440)%1440;if(diff!==30){ok=false;break;}}
+    if(!ok)continue;
+    const avg=slice.reduce((a,b)=>a+b.wavg,0)/slice.length;
+    if(!best||avg<best.avg)best={start:slice[0].min,end:(slice[slice.length-1].min+30)%1440,avg};
+  }
+  return best;
+}
+
+// LIVE PRICE
+async function loadLive(){
+  try{
+    const r=await fetch(LIVE_URL+'&_='+Date.now());
+    const data=await r.json();
+    data.sort((a,b)=>parseInt(b.millisUTC)-parseInt(a.millisUTC));
+    const latest=data[0];
+    const price=parseFloat(latest.price);
+    const ts=new Date(parseInt(latest.millisUTC));
+    const timeStr=ts.toLocaleString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});
+    const el=document.getElementById('live-price');
+    el.textContent=price.toFixed(2)+'¢';
+    el.style.color=priceColor(price);
+    document.getElementById('live-time').textContent='As of '+timeStr+' CT';
+    const [cls,label]=signal(price);
+    document.getElementById('live-badge').innerHTML=`<span class="badge ${cls}">${label}</span>`;
+    const allin=(price+DELIVERY_OVN+FIXED_ADDER).toFixed(2);
+    document.getElementById('live-allin').textContent=allin+'¢/kWh';
+    // gas equivalent: all-in cents / 100 * 33.7 kWh/gge / 3.0 mi/kWh
+    const cpm=(price+DELIVERY_OVN+FIXED_ADDER)/100;
+    const gge=(cpm*33.7).toFixed(2);
+    document.getElementById('live-gas').textContent='~$'+gge+'/GGE equiv.';
+
+    // build today's chart from feed
+    loadTodayChart(data);
+  }catch(e){
+    document.getElementById('live-price').textContent='—';
+    document.getElementById('live-time').textContent='API unavailable';
+  }
+}
+
+// TODAY'S CHART
+function loadTodayChart(data){
+  const now=new Date();
+  const todayStr=now.toLocaleDateString('en-US',{timeZone:'America/Chicago'});
+  const todayPoints=data.filter(x=>{
+    const d=new Date(parseInt(x.millisUTC));
+    return d.toLocaleDateString('en-US',{timeZone:'America/Chicago'})===todayStr;
+  }).map(x=>({
+    min:toChiMin(new Date(parseInt(x.millisUTC)).toI
