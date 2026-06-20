@@ -215,4 +215,152 @@ function loadTodayChart(data){
     const d=new Date(parseInt(x.millisUTC));
     return d.toLocaleDateString('en-US',{timeZone:'America/Chicago'})===todayStr;
   }).map(x=>({
-    min:toChiMin(new Date(parseInt(x.millisUTC)).toI
+    min:toChiMin(new Date(parseInt(x.millisUTC)).toISO('en-US'),price:parseFloat(x.price)}))
+    .filter(x=>!isNaN(x.price))
+    .sort((a,b)=>a.min-b.min);
+
+  if(!todayPoints.length)return;
+  drawChart(todayPoints);
+}
+
+function drawChart(points){
+  const prices=points.map(p=>p.price);
+  const minP=Math.min(...prices);
+  const maxP=Math.max(...prices);
+  const range=Math.max(maxP-minP,1);
+  const W=400,H=140,PAD=8;
+  const x=i=>PAD+(i/(points.length-1))*(W-PAD*2);
+  const y=v=>H-PAD-((v-minP)/range)*(H-PAD*2);
+
+  let path='M';
+  let area='M'+PAD+','+H+' L';
+  points.forEach((p,i)=>{
+    const px=x(i),py=y(p.price);
+    path+=(i===0?'':' L')+px+','+py;
+    area+=px+','+py+' ';
+  });
+  area+='L'+(W-PAD)+','+H+' Z';
+
+  const zeroY=y(0);
+  const zeroLine=minP<0&&maxP>0?`e x1="${PAD}" y1="${zeroY}" x2="${W-PAD}" y2="${zeroY}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>`:'';
+  const nowIdx=Math.floor(points.length*0.99);
+  const nowDot=`ircle cx="${x(nowIdx)}" cy="${y(points[nowIdx].price)}" r="4" fill="var(--accent)"/>`;
+
+  document.getElementById('price-chart').innerHTML=`
+    <defs>
+      earGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <path d="${area}" fill="url(#ag)"/>
+    <path d="${path}" fill="none" stroke="#38bdf8" stroke-width="1.5"/>
+    ${zeroLine}
+    ${nowDot}
+    <text x="${PAD}" y="${H-1}" fill="#94a3b8" font-size="9">${minP.toFixed(1)}¢</text>
+    <text x="${PAD}" y="12" fill="#94a3b8" font-size="9">${maxP.toFixed(1)}¢</text>`;
+
+  const hours=['12A','3A','6A','9A','12P','3P','6P','9P','Now'];
+  document.getElementById('chart-axis').innerHTML=hours.map(h=>`<span>${h}</span>`).join('');
+}
+
+async function loadFeedData(){
+  try{
+    const r=await fetch(FEED_URL+'?v='+Date.now());
+    const data=await r.json();
+    const items=data.items||[];
+    const now=Date.now();
+    const recentCut=now-RECENT_DAYS*86400000;
+
+    // Negative ticker
+    const negItems=items.filter(x=>x.price<0).slice(-10).reverse();
+    if(negItems.length){
+      document.getElementById('neg-ticker').innerHTML=
+        '⚡ Recent negative prices: '+
+        negItems.map(x=>{
+          const t=new Date(parseInt(x.millisUTC)).toLocaleString('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+          return `<span style="color:var(--green)">${t} @ ${x.price.toFixed(2)}¢</span>`;
+        }).join(' &nbsp;|&nbsp; ');
+    }else{
+      document.getElementById('neg-ticker').textContent='No negative price events in current dataset.';
+    }
+
+    // Weighted overnight slots
+    const slotMap={};
+    items.forEach(x=>{
+      const ms=parseInt(x.millisUTC);
+      const m=toChiMin(x.ts_utc);
+      if(!inOvn(m))return;
+      const key=Math.floor(m/30)*30;
+      const isRecent=ms>=recentCut;
+      if(!slotMap[key])slotMap[key]={min:key,rsum:0,rcnt:0,osum:0,ocnt:0};
+      if(isRecent){slotMap[key].rsum+=x.price;slotMap[key].rcnt++;}
+      else{slotMap[key].osum+=x.price;slotMap[key].ocnt++;}
+    });
+    const slots=Object.values(slotMap).map(s=>{
+      const ra=s.rcnt?s.rsum/s.rcnt:null;
+      const oa=s.ocnt?s.osum/s.ocnt:null;
+      let wavg;
+      if(ra!==null&&oa!==null)wavg=W_RECENT*ra+W_OLDER*oa;
+      else if(ra!==null)wavg=ra;
+      else wavg=oa;
+      return{min:s.min,wavg};
+    }).sort((a,b)=>a.min-b.min);
+
+    [2,3,4].forEach(h=>{
+      const w=bestWindow(slots,h);
+      if(w)document.getElementById('bw'+h).textContent=fmtMin(w.start)+'–'+fmtMin(w.end);
+    });
+
+    const ovnAvg=slots.length?(slots.reduce((a,b)=>a+b.wavg,0)/slots.length).toFixed(2)+'¢':'—';
+    document.getElementById('bw-avg').textContent=ovnAvg;
+
+    // Countdown to best 3h window
+    const best3=bestWindow(slots,3);
+    if(best3){
+      window._best3start=best3.start;
+      updateCountdown(best3.start);
+    }
+  }catch(e){console.error('Feed error',e);}
+}
+
+function updateCountdown(startMin){
+  const now=new Date();
+  const chiNow=new Date(now.toLocaleString('en-US',{timeZone:'America/Chicago'}));
+  const nowMin=chiNow.getHours()*60+chiNow.getMinutes();
+  let diffMin=(startMin-nowMin+1440)%1440;
+  const diffMs=diffMin*60*1000-chiNow.getSeconds()*1000;
+
+  if(diffMin===0){
+    document.getElementById('countdown').textContent='NOW';
+    document.getElementById('countdown').style.color='var(--green)';
+    document.getElementById('countdown-sub').textContent='Best 3-hour window is active — charge now!';
+  }else{
+    document.getElementById('countdown').textContent=fmtHHMM(diffMs);
+    document.getElementById('countdown-sub').textContent='Until best window starts at '+fmtMin(startMin);
+  }
+}
+
+function startCountdownTick(){
+  setInterval(()=>{
+    if(window._best3start!==undefined)updateCountdown(window._best3start);
+  },1000);
+}
+
+function updateRefreshTime(){
+  const t=new Date().toLocaleString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('last-refresh').textContent='Last refresh: '+t+' CT';
+}
+
+async function init(){
+  await loadLive();
+  await loadFeedData();
+  updateRefreshTime();
+  startCountdownTick();
+  setTimeout(()=>location.reload(),AUTO_REFRESH_MS);
+}
+
+init();
+</script>
+</body>
+</html>
