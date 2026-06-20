@@ -11,91 +11,69 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .kiosk{display:flex;height:100vh;width:100vw;}
 .left{flex:0 0 62%;height:100%;border-right:2px solid var(--border);overflow:hidden;}
 .left iframe{width:100%;height:100%;border:none;background:var(--bg);}
-.right{flex:1;height:100%;display:flex;flex-direction:column;gap:0;overflow:hidden;}
-
-/* RIGHT PANEL SECTIONS */
-.rblock{padding:14px 16px;border-bottom:1px solid var(--border);}
-.rblock:last-child{border-bottom:none;flex:1;}
-
-/* LIVE PRICE */
-.live-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;}
-.live-price{font-size:3.8rem;font-weight:800;line-height:1;margin-bottom:4px;}
-.live-sub{font-size:0.8rem;color:var(--muted);}
-.badge{display:inline-block;font-size:0.72rem;padding:3px 10px;border-radius:999px;font-weight:700;margin-top:4px;}
+.right{flex:1;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.rblock{padding:12px 16px;border-bottom:1px solid var(--border);}
+.rblock.fill{flex:1;display:flex;flex-direction:column;justify-content:center;}
+.rlabel{font-size:0.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px;}
+.live-price{font-size:4rem;font-weight:800;line-height:1;margin-bottom:2px;}
+.live-sub{font-size:0.78rem;color:var(--muted);}
+.badge{display:inline-block;font-size:0.72rem;padding:3px 10px;border-radius:999px;font-weight:700;margin-top:6px;}
 .badge-green{background:rgba(134,239,172,0.15);color:var(--green);}
 .badge-blue{background:rgba(147,197,253,0.15);color:var(--blue);}
 .badge-yellow{background:rgba(253,230,138,0.15);color:var(--yellow);}
 .badge-red{background:rgba(252,165,165,0.15);color:var(--red);}
 .green{color:var(--green);}.red{color:var(--red);}.blue{color:var(--blue);}.yellow{color:var(--yellow);}.accent{color:var(--accent);}.orange{color:var(--orange);}
-
-/* CHART */
-.chart-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
-.chart-wrap{width:100%;position:relative;}
-svg.pricechart{width:100%;height:140px;display:block;}
-.chart-axis{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted);margin-top:2px;padding:0 2px;}
-
-/* BEST WINDOW */
-.bw-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
-.bw-chip{background:#1e293b;border-radius:8px;padding:10px 12px;}
-.bw-label{font-size:0.65rem;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
-.bw-val{font-size:1.05rem;font-weight:700;}
-
-/* COUNTDOWN */
-.countdown-wrap{text-align:center;padding:10px 0;}
-.countdown-label{font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.countdown-val{font-size:2.2rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;}
-.countdown-sub{font-size:0.75rem;color:var(--muted);margin-top:4px;}
-
-/* REFRESH ROW */
-.refresh-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);background:var(--card);}
+.ticker{font-size:0.75rem;padding:6px 16px;background:#0f1e2e;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);}
+.chart-wrap{width:100%;margin-top:6px;}
+svg.pchart{width:100%;height:120px;display:block;}
+.chart-axis{display:flex;justify-content:space-between;font-size:0.62rem;color:var(--muted);margin-top:2px;}
+.bw-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.bw-chip{background:#1e293b;border-radius:8px;padding:9px 12px;}
+.bw-label{font-size:0.64rem;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.bw-val{font-size:1rem;font-weight:700;}
+.countdown-val{font-size:2.4rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;text-align:center;margin:4px 0;}
+.countdown-sub{font-size:0.75rem;color:var(--muted);text-align:center;}
+.refresh-row{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--border);background:var(--card);}
 .refresh-btn{background:var(--accent);color:#0b1220;border:none;border-radius:6px;font-size:0.8rem;font-weight:700;padding:7px 18px;cursor:pointer;}
 .refresh-btn:hover{background:#7dd3fc;}
-.refresh-info{font-size:0.72rem;color:var(--muted);}
-
-/* NEGATIVE TICKER */
-.ticker{font-size:0.78rem;padding:6px 16px;background:#0f2027;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.refresh-info{font-size:0.7rem;color:var(--muted);}
+.allin-row{font-size:0.75rem;margin-top:8px;}
 </style>
 </head>
 <body>
 <div class="kiosk">
-
-  <!-- LEFT: existing planner in iframe -->
   <div class="left">
-    <iframe id="planner-frame" src="./index.html" title="ComEd EV Charging Planner"></iframe>
+    <iframe src="./index.html" title="ComEd EV Charging Planner"></iframe>
   </div>
-
-  <!-- RIGHT: live dashboard -->
   <div class="right">
 
-    <!-- LIVE PRICE BLOCK -->
     <div class="rblock">
-      <div class="live-label">Current 5-Min Price &middot; ComEd Real-Time</div>
-      <div class="live-price accent" id="live-price">&mdash;</div>
-      <div class="live-sub" id="live-time">Loading&hellip;</div>
+      <div class="rlabel">Current 5-Min Price &middot; ComEd Real-Time</div>
+      <div class="live-price" id="live-price" style="color:var(--accent)">&mdash;</div>
+      <div class="live-sub" id="live-time">Fetching&hellip;</div>
       <div id="live-badge"></div>
-      <div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">
-        All-in est. (overnight): <span class="green" id="live-allin">&mdash;</span>
-        &nbsp;&middot;&nbsp; vs gas: <span class="accent" id="live-gas">&mdash;</span>
+      <div class="allin-row">
+        All-in overnight est: <span class="green" id="live-allin">&mdash;</span>
+        &nbsp;&middot;&nbsp; Gas equiv: <span class="accent" id="live-gas">&mdash;</span>
       </div>
     </div>
 
-    <!-- NEGATIVE TICKER -->
-    <div class="ticker" id="neg-ticker">Loading recent negative price events&hellip;</div>
+    <div class="ticker" id="neg-ticker">Loading negative price events&hellip;</div>
 
-    <!-- TODAY'S PRICE CHART -->
     <div class="rblock">
-      <div class="chart-title">Today&rsquo;s 5-Min Prices &middot; America/Chicago</div>
+      <div class="rlabel">Today&rsquo;s 5-Min Prices &middot; America/Chicago</div>
       <div class="chart-wrap">
-        <svg class="pricechart" id="price-chart" viewBox="0 0 400 140" preserveAspectRatio="none">
-          <text x="200" y="75" text-anchor="middle" fill="#94a3b8" font-size="12">Loading chart&hellip;</text>
+        <svg class="pchart" id="pchart" viewBox="0 0 400 120" preserveAspectRatio="none">
+          <text x="200" y="65" text-anchor="middle" fill="#94a3b8" font-size="11">Loading&hellip;</text>
         </svg>
       </div>
-      <div class="chart-axis" id="chart-axis"></div>
+      <div class="chart-axis">
+        <span>12A</span><span>3A</span><span>6A</span><span>9A</span><span>12P</span><span>3P</span><span>6P</span><span>9P</span><span>Now</span>
+      </div>
     </div>
 
-    <!-- BEST OVERNIGHT WINDOWS -->
     <div class="rblock">
-      <div class="chart-title">Best Overnight Windows (Weighted 70/30)</div>
+      <div class="rlabel">Best Overnight Windows (Weighted 70/30)</div>
       <div class="bw-grid">
         <div class="bw-chip"><div class="bw-label">Best 2-Hour</div><div class="bw-val green" id="bw2">&mdash;</div></div>
         <div class="bw-chip"><div class="bw-label">Best 3-Hour</div><div class="bw-val green" id="bw3">&mdash;</div></div>
@@ -104,31 +82,24 @@ svg.pricechart{width:100%;height:140px;display:block;}
       </div>
     </div>
 
-    <!-- COUNTDOWN TO BEST WINDOW -->
-    <div class="rblock">
-      <div class="countdown-wrap">
-        <div class="countdown-label">Time Until Best 3-Hour Window</div>
-        <div class="countdown-val" id="countdown">&mdash;</div>
-        <div class="countdown-sub" id="countdown-sub">&mdash;</div>
-      </div>
+    <div class="rblock fill">
+      <div class="rlabel" style="text-align:center">Time Until Best 3-Hour Window</div>
+      <div class="countdown-val" id="countdown">&mdash;</div>
+      <div class="countdown-sub" id="countdown-sub">&mdash;</div>
     </div>
 
-    <!-- REFRESH ROW -->
     <div class="refresh-row">
       <span class="refresh-info" id="last-refresh">Last refresh: &mdash;</span>
       <button class="refresh-btn" onclick="location.reload()">&#8635; Refresh</button>
     </div>
-
   </div>
 </div>
-
 <script>
-const LIVE_URL='https://hourlypricing.comed.com/api?type=5minutefeed&format=json';
 const FEED_URL='./data/comed_5min_rolling_60d.json';
-const DELIVERY_OVN=3.311,FIXED_ADDER=1.145;
+const LIVE_API='https://hourlypricing.comed.com/api?type=5minutefeed&format=json';
 const RECENT_DAYS=5,W_RECENT=0.70,W_OLDER=0.30;
 const OVN_START=21*60,OVN_END=6*60;
-const AUTO_REFRESH_MS=5*60*1000;
+const DELIVERY_OVN=3.311,FIXED_ADDER=1.145;
 
 function toChiMin(iso){
   const d=new Date(iso);
@@ -140,23 +111,12 @@ function inOvn(m){return m>=OVN_START||m<OVN_END;}
 function fmtMin(m){
   const mm=((m%1440)+1440)%1440;
   const h=Math.floor(mm/60)%12||12;
-  const min=String(mm%60).padStart(2,'0');
-  const ap=Math.floor(mm/60)<12?'AM':'PM';
-  return `${h}:${min} ${ap}`;
+  const mn=String(mm%60).padStart(2,'0');
+  return `${h}:${mn} ${Math.floor(mm/60)<12?'AM':'PM'}`;
 }
-function fmtHHMM(ms){
-  const totalSec=Math.max(0,Math.floor(ms/1000));
-  const h=Math.floor(totalSec/3600);
-  const m=Math.floor((totalSec%3600)/60);
-  const s=totalSec%60;
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-function signal(p){
-  if(p<0)return['badge-green','Excellent ⚡'];
-  if(p<3)return['badge-green','Very Good'];
-  if(p<6)return['badge-blue','Good'];
-  if(p<10)return['badge-yellow','Fair'];
-  return['badge-red','Avoid'];
+function fmtHMS(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  return `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 }
 function priceColor(p){
   if(p<0)return'var(--green)';
@@ -164,126 +124,104 @@ function priceColor(p){
   if(p<8)return'var(--yellow)';
   return'var(--red)';
 }
+function signalBadge(p){
+  if(p<0)return['badge-green','Excellent ⚡'];
+  if(p<3)return['badge-green','Very Good'];
+  if(p<6)return['badge-blue','Good'];
+  if(p<10)return['badge-yellow','Fair'];
+  return['badge-red','Avoid'];
+}
 function bestWindow(slots,hours){
   const steps=hours*2;let best=null;
   for(let i=0;i<=slots.length-steps;i++){
-    const slice=slots.slice(i,i+steps);let ok=true;
-    for(let j=1;j<slice.length;j++){const diff=(slice[j].min-slice[j-1].min+1440)%1440;if(diff!==30){ok=false;break;}}
+    const sl=slots.slice(i,i+steps);let ok=true;
+    for(let j=1;j<sl.length;j++){if((sl[j].min-sl[j-1].min+1440)%1440!==30){ok=false;break;}}
     if(!ok)continue;
-    const avg=slice.reduce((a,b)=>a+b.wavg,0)/slice.length;
-    if(!best||avg<best.avg)best={start:slice[0].min,end:(slice[slice.length-1].min+30)%1440,avg};
+    const avg=sl.reduce((a,b)=>a+b.wavg,0)/sl.length;
+    if(!best||avg<best.avg)best={start:sl[0].min,end:(sl[sl.length-1].min+30)%1440,avg};
   }
   return best;
 }
 
-// LIVE PRICE
 async function loadLive(){
   try{
-    const r=await fetch(LIVE_URL+'&_='+Date.now());
+    const r=await fetch(LIVE_API+'&_='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const data=await r.json();
+    if(!Array.isArray(data)||!data.length)throw new Error('empty');
     data.sort((a,b)=>parseInt(b.millisUTC)-parseInt(a.millisUTC));
-    const latest=data[0];
-    const price=parseFloat(latest.price);
-    const ts=new Date(parseInt(latest.millisUTC));
+    const price=parseFloat(data[0].price);
+    const ts=new Date(parseInt(data[0].millisUTC));
     const timeStr=ts.toLocaleString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});
     const el=document.getElementById('live-price');
     el.textContent=price.toFixed(2)+'¢';
     el.style.color=priceColor(price);
     document.getElementById('live-time').textContent='As of '+timeStr+' CT';
-    const [cls,label]=signal(price);
+    const [cls,label]=signalBadge(price);
     document.getElementById('live-badge').innerHTML=`<span class="badge ${cls}">${label}</span>`;
     const allin=(price+DELIVERY_OVN+FIXED_ADDER).toFixed(2);
     document.getElementById('live-allin').textContent=allin+'¢/kWh';
-    // gas equivalent: all-in cents / 100 * 33.7 kWh/gge / 3.0 mi/kWh
-    const cpm=(price+DELIVERY_OVN+FIXED_ADDER)/100;
-    const gge=(cpm*33.7).toFixed(2);
-    document.getElementById('live-gas').textContent='~$'+gge+'/GGE equiv.';
-
-    // build today's chart from feed
-    loadTodayChart(data);
+    const gge=((price+DELIVERY_OVN+FIXED_ADDER)/100*33.7).toFixed(2);
+    document.getElementById('live-gas').textContent='$'+gge+'/GGE';
+    buildChart(data);
   }catch(e){
     document.getElementById('live-price').textContent='—';
-    document.getElementById('live-time').textContent='API unavailable';
+    document.getElementById('live-time').textContent='API error: '+e.message;
   }
 }
 
-// TODAY'S CHART
-function loadTodayChart(data){
-  const now=new Date();
-  const todayStr=now.toLocaleDateString('en-US',{timeZone:'America/Chicago'});
-  const todayPoints=data.filter(x=>{
-    const d=new Date(parseInt(x.millisUTC));
-    return d.toLocaleDateString('en-US',{timeZone:'America/Chicago'})===todayStr;
-  }).map(x=>({
-    min:toChiMin(new Date(parseInt(x.millisUTC)).toISO('en-US'),price:parseFloat(x.price)}))
-    .filter(x=>!isNaN(x.price))
-    .sort((a,b)=>a.min-b.min);
-
-  if(!todayPoints.length)return;
-  drawChart(todayPoints);
-}
-
-function drawChart(points){
-  const prices=points.map(p=>p.price);
-  const minP=Math.min(...prices);
-  const maxP=Math.max(...prices);
-  const range=Math.max(maxP-minP,1);
-  const W=400,H=140,PAD=8;
-  const x=i=>PAD+(i/(points.length-1))*(W-PAD*2);
-  const y=v=>H-PAD-((v-minP)/range)*(H-PAD*2);
-
-  let path='M';
-  let area='M'+PAD+','+H+' L';
-  points.forEach((p,i)=>{
-    const px=x(i),py=y(p.price);
-    path+=(i===0?'':' L')+px+','+py;
-    area+=px+','+py+' ';
+function buildChart(data){
+  const todayStr=new Date().toLocaleDateString('en-US',{timeZone:'America/Chicago'});
+  const pts=data.filter(x=>{
+    return new Date(parseInt(x.millisUTC)).toLocaleDateString('en-US',{timeZone:'America/Chicago'})===todayStr;
+  }).map(x=>({min:toChiMin(new Date(parseInt(x.millisUTC)).toISOString()),price:parseFloat(x.price)}))
+    .filter(x=>isFinite(x.price)).sort((a,b)=>a.min-b.min);
+  if(pts.length<2)return;
+  const prices=pts.map(p=>p.price);
+  const minP=Math.min(...prices),maxP=Math.max(...prices);
+  const rng=Math.max(maxP-minP,1);
+  const W=400,H=120,P=8;
+  const cx=i=>P+(i/(pts.length-1))*(W-P*2);
+  const cy=v=>H-P-((v-minP)/rng)*(H-P*2);
+  let path='',area=`M${P},${H} `;
+  pts.forEach((p,i)=>{
+    path+=(i===0?`M${cx(i)},${cy(p.price)}`:`L${cx(i)},${cy(p.price)}`);
+    area+=`${cx(i)},${cy(p.price)} `;
   });
-  area+='L'+(W-PAD)+','+H+' Z';
-
-  const zeroY=y(0);
-  const zeroLine=minP<0&&maxP>0?`e x1="${PAD}" y1="${zeroY}" x2="${W-PAD}" y2="${zeroY}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>`:'';
-  const nowIdx=Math.floor(points.length*0.99);
-  const nowDot=`ircle cx="${x(nowIdx)}" cy="${y(points[nowIdx].price)}" r="4" fill="var(--accent)"/>`;
-
-  document.getElementById('price-chart').innerHTML=`
-    <defs>
-      earGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3"/>
-        <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.02"/>
-      </linearGradient>
-    </defs>
-    <path d="${area}" fill="url(#ag)"/>
-    <path d="${path}" fill="none" stroke="#38bdf8" stroke-width="1.5"/>
-    ${zeroLine}
-    ${nowDot}
-    <text x="${PAD}" y="${H-1}" fill="#94a3b8" font-size="9">${minP.toFixed(1)}¢</text>
-    <text x="${PAD}" y="12" fill="#94a3b8" font-size="9">${maxP.toFixed(1)}¢</text>`;
-
-  const hours=['12A','3A','6A','9A','12P','3P','6P','9P','Now'];
-  document.getElementById('chart-axis').innerHTML=hours.map(h=>`<span>${h}</span>`).join('');
+  area+=`L${W-P},${H} Z`;
+  const zeroY=cy(0);
+  const zeroLine=minP<0&&maxP>0?`e x1="${P}" y1="${zeroY}" x2="${W-P}" y2="${zeroY}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>`:'';
+  const last=pts[pts.length-1];
+  const dot=`ircle cx="${cx(pts.length-1)}" cy="${cy(last.price)}" r="4" fill="${priceColor(last.price)}"/>`;
+  document.getElementById('pchart').innerHTML=`
+    <defs>earGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.01"/>
+    </linearGradient></defs>
+    <path d="M${P},${H} ${area}" fill="url(#ag)"/>
+    <path d="${path}" fill="none" stroke="#38bdf8" stroke-width="1.8"/>
+    ${zeroLine}${dot}
+    <text x="${P}" y="${H-2}" fill="#94a3b8" font-size="9">${minP.toFixed(1)}¢</text>
+    <text x="${P}" y="11" fill="#94a3b8" font-size="9">${maxP.toFixed(1)}¢</text>`;
 }
 
-async function loadFeedData(){
+async function loadFeed(){
   try{
     const r=await fetch(FEED_URL+'?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
     const data=await r.json();
     const items=data.items||[];
     const now=Date.now();
     const recentCut=now-RECENT_DAYS*86400000;
 
     // Negative ticker
-    const negItems=items.filter(x=>x.price<0).slice(-10).reverse();
-    if(negItems.length){
-      document.getElementById('neg-ticker').innerHTML=
-        '⚡ Recent negative prices: '+
-        negItems.map(x=>{
+    const neg=items.filter(x=>x.price<0).slice(-8).reverse();
+    document.getElementById('neg-ticker').innerHTML=neg.length
+      ?'⚡ Recent negatives: '+neg.map(x=>{
           const t=new Date(parseInt(x.millisUTC)).toLocaleString('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-          return `<span style="color:var(--green)">${t} @ ${x.price.toFixed(2)}¢</span>`;
-        }).join(' &nbsp;|&nbsp; ');
-    }else{
-      document.getElementById('neg-ticker').textContent='No negative price events in current dataset.';
-    }
+          return `<span style="color:var(--green)">${t} @ ${parseFloat(x.price).toFixed(2)}¢</span>`;
+        }).join(' &nbsp;|&nbsp; ')
+      :'No negative price events in current dataset.';
 
     // Weighted overnight slots
     const slotMap={};
@@ -311,53 +249,55 @@ async function loadFeedData(){
       const w=bestWindow(slots,h);
       if(w)document.getElementById('bw'+h).textContent=fmtMin(w.start)+'–'+fmtMin(w.end);
     });
+    if(slots.length){
+      const avg=(slots.reduce((a,b)=>a+b.wavg,0)/slots.length).toFixed(2);
+      document.getElementById('bw-avg').textContent=avg+'¢';
+    }
 
-    const ovnAvg=slots.length?(slots.reduce((a,b)=>a+b.wavg,0)/slots.length).toFixed(2)+'¢':'—';
-    document.getElementById('bw-avg').textContent=ovnAvg;
-
-    // Countdown to best 3h window
+    // Countdown
     const best3=bestWindow(slots,3);
     if(best3){
-      window._best3start=best3.start;
-      updateCountdown(best3.start);
+      window._best3=best3.start;
+      tickCountdown();
     }
-  }catch(e){console.error('Feed error',e);}
-}
-
-function updateCountdown(startMin){
-  const now=new Date();
-  const chiNow=new Date(now.toLocaleString('en-US',{timeZone:'America/Chicago'}));
-  const nowMin=chiNow.getHours()*60+chiNow.getMinutes();
-  let diffMin=(startMin-nowMin+1440)%1440;
-  const diffMs=diffMin*60*1000-chiNow.getSeconds()*1000;
-
-  if(diffMin===0){
-    document.getElementById('countdown').textContent='NOW';
-    document.getElementById('countdown').style.color='var(--green)';
-    document.getElementById('countdown-sub').textContent='Best 3-hour window is active — charge now!';
-  }else{
-    document.getElementById('countdown').textContent=fmtHHMM(diffMs);
-    document.getElementById('countdown-sub').textContent='Until best window starts at '+fmtMin(startMin);
+  }catch(e){
+    console.error('Feed error',e);
+    document.getElementById('neg-ticker').textContent='Feed error: '+e.message;
   }
 }
 
-function startCountdownTick(){
-  setInterval(()=>{
-    if(window._best3start!==undefined)updateCountdown(window._best3start);
-  },1000);
+function tickCountdown(){
+  const startMin=window._best3;
+  if(startMin===undefined)return;
+  const now=new Date();
+  const chi=new Date(now.toLocaleString('en-US',{timeZone:'America/Chicago'}));
+  const nowMin=chi.getHours()*60+chi.getMinutes();
+  const diffMin=((startMin-nowMin)+1440)%1440;
+  const diffMs=diffMin*60*1000-chi.getSeconds()*1000;
+  const cd=document.getElementById('countdown');
+  const cs=document.getElementById('countdown-sub');
+  if(diffMin===0){
+    cd.textContent='NOW';
+    cd.style.color='var(--green)';
+    cs.textContent='Best 3-hour window is active — charge now!';
+  }else{
+    cd.textContent=fmtHMS(diffMs);
+    cd.style.color='var(--accent)';
+    cs.textContent='Until best window at '+fmtMin(startMin);
+  }
 }
 
-function updateRefreshTime(){
+function updateRefresh(){
   const t=new Date().toLocaleString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById('last-refresh').textContent='Last refresh: '+t+' CT';
 }
 
 async function init(){
   await loadLive();
-  await loadFeedData();
-  updateRefreshTime();
-  startCountdownTick();
-  setTimeout(()=>location.reload(),AUTO_REFRESH_MS);
+  await loadFeed();
+  updateRefresh();
+  setInterval(tickCountdown,1000);
+  setTimeout(()=>location.reload(),5*60*1000);
 }
 
 init();
