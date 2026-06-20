@@ -126,7 +126,32 @@ tr:hover td{background:rgba(255,255,255,0.03);}
   </div>
   <p class="note">Delivery rates from June 2026 ComEd bill (Single-Family Non-Electric Heat TOD). Fixed supply adders: Transmission 1.083&cent; + Misc Procurement 0.062&cent; = 1.145&cent;/kWh.</p>
 </section>
-
+<section>
+  <h2>Right Now &ndash; True All-In Cost This Minute</h2>
+  <div class="grid" id="rightnow-grid">
+    <div class="card">
+      <div class="card-label">Current TOD Period</div>
+      <div class="card-value accent" id="rn-period">&mdash;</div>
+      <div class="card-sub" id="rn-period-hours">&mdash;</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Market Price Right Now</div>
+      <div class="card-value" id="rn-market">&mdash;</div>
+      <div class="card-sub" id="rn-market-time">&mdash;</div>
+    </div>
+    <div class="card">
+      <div class="card-label">True All-In Cost Right Now</div>
+      <div class="card-value" id="rn-allin">&mdash;</div>
+      <div class="card-sub" id="rn-breakdown">&mdash;</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Your Mach-E Cost Per Mile</div>
+      <div class="card-value" id="rn-cpm">&mdash;</div>
+      <div class="card-sub" id="rn-gas">&mdash;</div>
+    </div>
+  </div>
+  <p class="note">All-in cost uses current 5-min market price + your actual June 2026 billed TOD delivery rate for this hour + fixed supply adders (1.145&cent;/kWh). Updates on page refresh. Does not include capacity charge, taxes, or purchased electricity adjustment.</p>
+</section>
 <section>
   <h2>Best Overnight Charging Windows (Weighted Supply Price)</h2>
   <div class="grid">
@@ -316,7 +341,73 @@ async function loadLivePrice(){
     document.getElementById('stat-live-sub').textContent=e.message;
   }
 }
+async function loadRightNow(){
+  try{
+    const r=await fetch('https://hourlypricing.comed.com/api?type=5minutefeed&format=json&_='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    if(!Array.isArray(data)||!data.length)throw new Error('empty');
+    data.sort((a,b)=>parseInt(b.millisUTC)-parseInt(a.millisUTC));
+    const latest=data[0];
+    const market=parseFloat(latest.price);
+    const ts=new Date(parseInt(latest.millisUTC));
+    const timeStr=ts.toLocaleString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});
 
+    // Determine current TOD period
+    const nowChi=new Date().toLocaleString('en-US',{timeZone:'America/Chicago',hour12:false,hour:'2-digit',minute:'2-digit'});
+    const [nh,nm]=nowChi.split(':');
+    let hh=parseInt(nh,10);if(hh===24)hh=0;
+    const nowMin=hh*60+parseInt(nm,10);
+
+    let period,periodHours,delivery;
+    if(nowMin>=21*60||nowMin<6*60){
+      period='Overnight';periodHours='9:00 PM \u2013 6:00 AM';delivery=3.311;
+    }else if(nowMin>=6*60&&nowMin<13*60){
+      period='Morning';periodHours='6:00 AM \u2013 1:00 PM';delivery=4.428;
+    }else if(nowMin>=13*60&&nowMin<19*60){
+      period='Mid-Day Peak';periodHours='1:00 PM \u2013 7:00 PM';delivery=11.727;
+    }else{
+      period='Evening';periodHours='7:00 PM \u2013 9:00 PM';delivery=4.142;
+    }
+
+    const transmission=1.083;
+    const misc=0.062;
+    const totalAllin=market+delivery+transmission+misc;
+    const cpm=totalAllin/100/3.0; // dollars per mile (3.0 mi/kWh Mach-E)
+    const gge=(totalAllin/100*33.7).toFixed(2); // gas gallon equivalent
+
+    // Period color
+    const periodColor=period==='Overnight'?'var(--green)':period==='Morning'?'var(--yellow)':period==='Mid-Day Peak'?'var(--red)':'var(--orange)';
+
+    // Market color
+    const mktColor=market<0?'var(--green)':market<3?'var(--accent)':market<8?'var(--yellow)':'var(--red)';
+
+    // All-in color
+    const aiColor=totalAllin<8?'var(--green)':totalAllin<12?'var(--accent)':totalAllin<18?'var(--yellow)':'var(--red)';
+
+    document.getElementById('rn-period').textContent=period;
+    document.getElementById('rn-period').style.color=periodColor;
+    document.getElementById('rn-period-hours').textContent=periodHours+' \u00b7 Delivery '+delivery.toFixed(3)+'\u00a2/kWh';
+
+    document.getElementById('rn-market').textContent=market.toFixed(2)+'\u00a2/kWh';
+    document.getElementById('rn-market').style.color=mktColor;
+    document.getElementById('rn-market-time').textContent='As of '+timeStr+' CT';
+
+    document.getElementById('rn-allin').textContent=totalAllin.toFixed(2)+'\u00a2/kWh';
+    document.getElementById('rn-allin').style.color=aiColor;
+    document.getElementById('rn-breakdown').textContent=
+      market.toFixed(2)+'\u00a2 market + '+delivery.toFixed(3)+'\u00a2 delivery + 1.145\u00a2 fixed';
+
+    document.getElementById('rn-cpm').textContent=(cpm*100).toFixed(2)+'\u00a2/mile';
+    document.getElementById('rn-cpm').style.color=aiColor;
+    document.getElementById('rn-gas').textContent=
+      'Gas equiv $'+gge+'/GGE \u00b7 vs $4.00 gas @ 25mpg = 16.0\u00a2/mi';
+
+  }catch(e){
+    document.getElementById('rn-market').textContent='Unavailable';
+    document.getElementById('rn-market-time').textContent=e.message;
+  }
+}
 async function loadTomorrow(){
   const panel=document.getElementById('tomorrow-panel');
   try{
@@ -430,6 +521,7 @@ async function init(){
   }
   loadTomorrow();
   loadLivePrice();
+  loadRightNow();
 }
 
 init();
