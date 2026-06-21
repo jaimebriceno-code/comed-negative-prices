@@ -387,7 +387,7 @@ function calcSession(){
     const m=toChiMin(x.ts_utc);
     const delivery=delAdder(m);
     const allin=market+delivery+FIXED_ADDER;
-    const intervalCost=(allin/100)*kwhPerInterval;
+    // kWh: use const intervalCost=(allin/100)*wallKwhPerInterval;actual session duration, not interval count (intervals may be sparse)   // Wall draw = 9.6kW / 0.90 eff; Battery delivered = 9.6kW * hours   const sessionHours=(endMs-startMs)/3600000;   const wallKwhPerHour=9.6/CHARGE_EFF;   const battKwhPerInterval=9.6/12;   const wallKwhPerInterval=wallKwhPerHour/12;
     totalCost+=intervalCost;
 
     const t=new Date(parseInt(x.millisUTC)).toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});
@@ -401,7 +401,7 @@ function calcSession(){
   const cpm=totalCost/milesAdded*100;
 
   document.getElementById('sess-intervals').textContent=sessionItems.length;
-  document.getElementById('sess-kwh').textContent=totalKwh.toFixed(2)+' kWh';
+  // kWh: use document.getElementById('sess-kwh').textContent=totalBattKwh.toFixed(2)+' kWh ('+totalWallKwh.toFixed(2)+' wall)';const totalWallKwh=wallKwhPerInterval*sessionItems.length; const totalBattKwh=battKwhPerInterval*sessionItems.length; const avgAllin=(totalCost/totalWallKwh)*100; const milesAdded=totalBattKwh*MILES_PER_KWH;const intervalCost=(allin/100)*wallKwhPerInterval;actual session duration, not interval count (intervals may be sparse)   // Wall draw = 9.6kW / 0.90 eff; Battery delivered = 9.6kW * hours   const sessionHours=(endMs-startMs)/3600000;   const wallKwhPerHour=9.6/CHARGE_EFF;   const battKwhPerInterval=9.6/12;   const wallKwhPerInterval=wallKwhPerHour/12;
   document.getElementById('sess-avg').textContent=avgAllin.toFixed(2)+'¢/kWh';
   document.getElementById('sess-total').textContent='$'+totalCost.toFixed(4);
   document.getElementById('sess-miles').textContent=milesAdded.toFixed(1)+' mi';
