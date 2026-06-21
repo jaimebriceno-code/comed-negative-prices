@@ -81,7 +81,39 @@ svg.pchart{width:100%;height:120px;display:block;}
         <div class="bw-chip"><div class="bw-label">Tonight Avg Supply</div><div class="bw-val accent" id="bw-avg">&mdash;</div></div>
       </div>
     </div>
+    
+    <!-- SESSION COST CALCULATOR -->
+    <div class="rblock" style="border-top:2px solid var(--accent);">
+      <div class="rlabel">Charging Session Cost Calculator</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-bottom:3px;">Session Start</div>
+          <input type="datetime-local" id="sess-start" class="calc-input" style="width:175px;font-size:0.8rem;">
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-bottom:3px;">Session End</div>
+          <input type="datetime-local" id="sess-end" class="calc-input" style="width:175px;font-size:0.8rem;">
+        </div>
+        <button class="refresh-btn" style="margin-top:14px;" onclick="calcSession()">Compute Cost</button>
+      </div>
+      <div id="sess-results" style="margin-top:10px;display:none;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:8px;">
+          <div class="bw-chip"><div class="bw-label">Intervals Found</div><div class="bw-val accent" id="sess-intervals">&mdash;</div></div>
+          <div class="bw-chip"><div class="bw-label">kWh Delivered</div><div class="bw-val blue" id="sess-kwh">&mdash;</div></div>
+          <div class="bw-chip"><div class="bw-label">Avg All-In Rate</div><div class="bw-val yellow" id="sess-avg">&mdash;</div></div>
+          <div class="bw-chip"><div class="bw-label">Total Session Cost</div><div class="bw-val green" id="sess-total">&mdash;</div></div>
+          <div class="bw-chip"><div class="bw-label">Miles Added</div><div class="bw-val accent" id="sess-miles">&mdash;</div></div>
+          <div class="bw-chip"><div class="bw-label">Cost Per Mile</div><div class="bw-val purple" id="sess-cpm">&mdash;</div></div>
+        </div>
+        <div id="sess-breakdown" style="font-size:0.72rem;color:var(--muted);line-height:1.6;background:#1e293b;border-radius:8px;padding:10px 12px;max-height:80px;overflow-y:auto;"></div>
+      </div>
+      <div id="sess-error" style="font-size:0.78rem;color:var(--red);margin-top:8px;display:none;"></div>
+    </div>
 
+    <div class="refresh-row">
+      <span class="refresh-info" id="last-refresh">Last refresh: &mdash;</span>
+      <button class="refresh-btn" onclick="location.reload()">&#8635; Refresh</button>
+    </div>
     <div class="rblock fill">
       <div class="rlabel" style="text-align:center">Time Until Best 3-Hour Window</div>
       <div class="countdown-val" id="countdown">&mdash;</div>
@@ -299,7 +331,84 @@ async function init(){
   setInterval(tickCountdown,1000);
   setTimeout(()=>location.reload(),5*60*1000);
 }
+function calcSession(){
+  const startVal=document.getElementById('sess-start').value;
+  const endVal=document.getElementById('sess-end').value;
+  const errEl=document.getElementById('sess-error');
+  const resEl=document.getElementById('sess-results');
+  errEl.style.display='none';
+  resEl.style.display='none';
 
+  if(!startVal||!endVal){
+    errEl.textContent='Please enter both start and end times.';
+    errEl.style.display='block';
+    return;
+  }
+
+  const startMs=new Date(startVal).getTime();
+  const endMs=new Date(endVal).getTime();
+
+  if(endMs<=startMs){
+    errEl.textContent='End time must be after start time.';
+    errEl.style.display='block';
+    return;
+  }
+
+  const items=window._feedItems||[];
+  if(!items.length){
+    errEl.textContent='Feed data not loaded yet. Wait a moment and try again.';
+    errEl.style.display='block';
+    return;
+  }
+
+  // Find all intervals within the session window
+  const sessionItems=items.filter(x=>{
+    const ms=parseInt(x.millisUTC);
+    return ms>=startMs&&ms<=endMs;
+  }).sort((a,b)=>parseInt(a.millisUTC)-parseInt(b.millisUTC));
+
+  if(!sessionItems.length){
+    errEl.textContent='No 5-minute intervals found in that window. Data covers '+
+      new Date(parseInt(items[0].millisUTC)).toLocaleDateString('en-US',{timeZone:'America/Chicago'})+
+      ' to '+new Date(parseInt(items[items.length-1].millisUTC)).toLocaleDateString('en-US',{timeZone:'America/Chicago'})+'.';
+    errEl.style.display='block';
+    return;
+  }
+
+  // Charger: 9.6 kW output, 0.90 efficiency, so wall draw = 9.6/0.90 kWh per hour
+  // Each 5-min interval = 1/12 hour
+  const kwhPerInterval=(9.6/CHARGE_EFF)/12;
+
+  let totalCost=0;
+  let breakdownLines=[];
+
+  sessionItems.forEach(x=>{
+    const market=parseFloat(x.price);
+    const m=toChiMin(x.ts_utc);
+    const delivery=delAdder(m);
+    const allin=market+delivery+FIXED_ADDER;
+    const intervalCost=(allin/100)*kwhPerInterval;
+    totalCost+=intervalCost;
+
+    const t=new Date(parseInt(x.millisUTC)).toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});
+    const period=inOvn(m)?'OVN':m>=6*60&&m<13*60?'MRN':m>=13*60&&m<19*60?'MID':'EVE';
+    breakdownLines.push(`${t} · ${market.toFixed(2)}¢ mkt + ${delivery.toFixed(3)}¢ del = ${allin.toFixed(2)}¢ · $${intervalCost.toFixed(4)} [${period}]`);
+  });
+
+  const totalKwh=kwhPerInterval*sessionItems.length;
+  const avgAllin=(totalCost/totalKwh)*100;
+  const milesAdded=totalKwh*CHARGE_EFF*MILES_PER_KWH;
+  const cpm=totalCost/milesAdded*100;
+
+  document.getElementById('sess-intervals').textContent=sessionItems.length;
+  document.getElementById('sess-kwh').textContent=totalKwh.toFixed(2)+' kWh';
+  document.getElementById('sess-avg').textContent=avgAllin.toFixed(2)+'¢/kWh';
+  document.getElementById('sess-total').textContent='$'+totalCost.toFixed(4);
+  document.getElementById('sess-miles').textContent=milesAdded.toFixed(1)+' mi';
+  document.getElementById('sess-cpm').textContent=cpm.toFixed(2)+'¢/mi';
+  document.getElementById('sess-breakdown').innerHTML=breakdownLines.join('<br>');
+  resEl.style.display='block';
+}
 init();
 </script>
 </body>
