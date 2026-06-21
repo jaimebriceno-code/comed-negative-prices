@@ -131,7 +131,7 @@ const FEED_URL='./data/comed_5min_rolling_60d.json';
 const LIVE_API='https://hourlypricing.comed.com/api?type=5minutefeed&format=json';
 const RECENT_DAYS=5,W_RECENT=0.70,W_OLDER=0.30;
 const OVN_START=21*60,OVN_END=6*60;
-const DELIVERY_OVN=3.311,FIXED_ADDER=1.145;
+const DELIVERY_OVN=3.311,FIXED_ADDER=1.145,CHARGE_EFF=0.90,MILES_PER_KWH=3.0; const DELIVERY={overnight:3.311,morning:4.428,midday:11.727,evening:4.142}; function delAdder(m){if(m>=21*60||m<6*60)return DELIVERY.overnight;if(m>=6*60&&m<13*60)return DELIVERY.morning;if(m>=13*60&&m<19*60)return DELIVERY.midday;return DELIVERY.evening;}
 
 function toChiMin(iso){
   const d=new Date(iso);
