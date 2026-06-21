@@ -242,7 +242,7 @@ async function loadFeed(){
     const r=await fetch(FEED_URL+'?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
     const data=await r.json();
-    const items=data.items||[];
+    const items=data.items||[];window._feedItems=items;
     const now=Date.now();
     const recentCut=now-RECENT_DAYS*86400000;
 
