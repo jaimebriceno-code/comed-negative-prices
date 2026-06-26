@@ -22,7 +22,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .badge-blue{background:rgba(147,197,253,0.15);color:var(--blue);}
 .badge-yellow{background:rgba(253,230,138,0.15);color:var(--yellow);}
 .badge-red{background:rgba(252,165,165,0.15);color:var(--red);}
-.green{color:var(--green);}.red{color:var(--red);}.blue{color:var(--blue);}.yellow{color:var(--yellow);}.accent{color:var(--accent);}.orange{color:var(--orange);}
+.green{color:var(--green);}
+.red{color:var(--red);}
+.blue{color:var(--blue);}
+.yellow{color:var(--yellow);}
+.accent{color:var(--accent);}
+.orange{color:var(--orange);}
+.purple{color:#c4b5fd;}
 .ticker{font-size:0.75rem;padding:6px 16px;background:#0f1e2e;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);}
 .chart-wrap{width:100%;margin-top:6px;}
 svg.pchart{width:100%;height:120px;display:block;}
@@ -110,10 +116,6 @@ svg.pchart{width:100%;height:120px;display:block;}
       <div id="sess-error" style="font-size:0.78rem;color:var(--red);margin-top:8px;display:none;"></div>
     </div>
 
-    <div class="refresh-row">
-      <span class="refresh-info" id="last-refresh">Last refresh: &mdash;</span>
-      <button class="refresh-btn" onclick="location.reload()">&#8635; Refresh</button>
-    </div>
     <div class="rblock fill">
       <div class="rlabel" style="text-align:center">Time Until Best 3-Hour Window</div>
       <div class="countdown-val" id="countdown">&mdash;</div>
@@ -121,7 +123,7 @@ svg.pchart{width:100%;height:120px;display:block;}
     </div>
 
     <div class="refresh-row">
-      <span class="refresh-info" id="last-refresh">Last refresh: &mdash;</span>
+      <span class="refresh-info last-refresh">Last refresh: &mdash;</span>
       <button class="refresh-btn" onclick="location.reload()">&#8635; Refresh</button>
     </div>
   </div>
@@ -132,6 +134,15 @@ const LIVE_API='https://hourlypricing.comed.com/api?type=5minutefeed&format=json
 const RECENT_DAYS=5,W_RECENT=0.70,W_OLDER=0.30;
 const OVN_START=21*60,OVN_END=6*60;
 const DELIVERY_OVN=3.311,FIXED_ADDER=1.145;
+
+// Charger / vehicle assumptions for Mach-E SR RWD on 40A (9.6 kW) circuit
+const CHARGE_EFF=0.90;       // wall-to-battery efficiency
+const MILES_PER_KWH=3.1;     // typical Mach-E SR RWD efficiency (mi/kWh)
+
+// Simple delivery adder by time-of-day (flat for now; adjust if you add TOU tiers)
+function delAdder(min){
+  return DELIVERY_OVN; // cents per kWh
+}
 
 function toChiMin(iso){
   const d=new Date(iso);
@@ -222,11 +233,11 @@ function buildChart(data){
   });
   area+=`L${W-P},${H} Z`;
   const zeroY=cy(0);
-  const zeroLine=minP<0&&maxP>0?`e x1="${P}" y1="${zeroY}" x2="${W-P}" y2="${zeroY}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>`:'';
+  const zeroLine=minP<0&&maxP>0?`<line x1="${P}" y1="${zeroY}" x2="${W-P}" y2="${zeroY}" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>`:'';
   const last=pts[pts.length-1];
-  const dot=`ircle cx="${cx(pts.length-1)}" cy="${cy(last.price)}" r="4" fill="${priceColor(last.price)}"/>`;
+  const dot=`<circle cx="${cx(pts.length-1)}" cy="${cy(last.price)}" r="4" fill="${priceColor(last.price)}"/>`;
   document.getElementById('pchart').innerHTML=`
-    <defs>earGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25"/>
       <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.01"/>
     </linearGradient></defs>
@@ -321,7 +332,9 @@ function tickCountdown(){
 
 function updateRefresh(){
   const t=new Date().toLocaleString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('last-refresh').textContent='Last refresh: '+t+' CT';
+  document.querySelectorAll('.last-refresh').forEach(el=>{
+    el.textContent='Last refresh: '+t+' CT';
+  });
 }
 
 async function init(){
@@ -331,6 +344,7 @@ async function init(){
   setInterval(tickCountdown,1000);
   setTimeout(()=>location.reload(),5*60*1000);
 }
+
 function calcSession(){
   const startVal=document.getElementById('sess-start').value;
   const endVal=document.getElementById('sess-end').value;
@@ -375,9 +389,8 @@ function calcSession(){
     return;
   }
 
-  // Charger: 9.6 kW output, 0.90 efficiency, so wall draw = 9.6/0.90 kWh per hour
-  // Each 5-min interval = 1/12 hour
-  const kwhPerInterval=(9.6/CHARGE_EFF)/12;
+  // 40A @ 240V -> 9.6 kW from wall, each 5-min interval = 1/12 hour
+  const kwhPerInterval=9.6/12; // wall kWh per 5-min interval
 
   let totalCost=0;
   let breakdownLines=[];
@@ -395,10 +408,10 @@ function calcSession(){
     breakdownLines.push(`${t} · ${market.toFixed(2)}¢ mkt + ${delivery.toFixed(3)}¢ del = ${allin.toFixed(2)}¢ · $${intervalCost.toFixed(4)} [${period}]`);
   });
 
-  const totalKwh=kwhPerInterval*sessionItems.length;
-  const avgAllin=(totalCost/totalKwh)*100;
+  const totalKwh=kwhPerInterval*sessionItems.length; // wall kWh
+  const avgAllin=(totalCost/totalKwh)*100;          // cents per kWh
   const milesAdded=totalKwh*CHARGE_EFF*MILES_PER_KWH;
-  const cpm=totalCost/milesAdded*100;
+  const cpm=totalCost/milesAdded*100;               // cents per mile
 
   document.getElementById('sess-intervals').textContent=sessionItems.length;
   document.getElementById('sess-kwh').textContent=totalKwh.toFixed(2)+' kWh';
@@ -409,6 +422,7 @@ function calcSession(){
   document.getElementById('sess-breakdown').innerHTML=breakdownLines.join('<br>');
   resEl.style.display='block';
 }
+
 init();
 </script>
 </body>
