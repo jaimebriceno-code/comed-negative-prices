@@ -131,7 +131,7 @@ const FEED_URL='./data/comed_5min_rolling_60d.json';
 const LIVE_API='https://hourlypricing.comed.com/api?type=5minutefeed&format=json';
 const RECENT_DAYS=5,W_RECENT=0.70,W_OLDER=0.30;
 const OVN_START=21*60,OVN_END=6*60;
-const DELIVERY_OVN=3.311,FIXED_ADDER=1.145,CHARGE_EFF=0.90,MILES_PER_KWH=3.0; const DELIVERY={overnight:3.311,morning:4.428,midday:11.727,evening:4.142}; function delAdder(m){if(m>=21*60||m<6*60)return DELIVERY.overnight;if(m>=6*60&&m<13*60)return DELIVERY.morning;if(m>=13*60&&m<19*60)return DELIVERY.midday;return DELIVERY.evening;}
+const DELIVERY_OVN=3.311,FIXED_ADDER=1.145;
 
 function toChiMin(iso){
   const d=new Date(iso);
@@ -331,7 +331,7 @@ async function init(){
   setInterval(tickCountdown,1000);
   setTimeout(()=>location.reload(),5*60*1000);
 }
-function calcSession(){const startVal=document.getElementById('sess-start').value;const endVal=document.getElementById('sess-end').value;const errEl=document.getElementById('sess-error');const resEl=document.getElementById('sess-results');errEl.style.display='none';resEl.style.display='none';if(!startVal||!endVal){errEl.textContent='Please enter both start and end times.';errEl.style.display='block';return;}const startMs=new Date(startVal).getTime();const endMs=new Date(endVal).getTime();if(endMs<=startMs){errEl.textContent='End time must be after start time.';errEl.style.display='block';return;}const items=window._feedItems||[];if(!items.length){errEl.textContent='Feed data not loaded yet. Wait a moment and try again.';errEl.style.display='block';return;}const sessionItems=items.filter(x=>{const ms=parseInt(x.millisUTC);return ms>=startMs&&ms<=endMs;}).sort((a,b)=>parseInt(a.millisUTC)-parseInt(b.millisUTC));if(!sessionItems.length){errEl.textContent='No intervals found in that window. Feed covers '+new Date(parseInt(items[0].millisUTC)).toLocaleDateString('en-US',{timeZone:'America/Chicago'})+' to '+new Date(parseInt(items[items.length-1].millisUTC)).toLocaleDateString('en-US',{timeZone:'America/Chicago'})+'.';errEl.style.display='block';return;}const wallKwhPerInterval=(9.6/CHARGE_EFF)/12;const battKwhPerInterval=9.6/12;let totalCost=0;const breakdownLines=[];sessionItems.forEach(x=>{const market=parseFloat(x.price);const m=toChiMin(x.ts_utc);const delivery=delAdder(m);const allin=market+delivery+FIXED_ADDER;const intervalCost=(allin/100)*wallKwhPerInterval;totalCost+=intervalCost;const t=new Date(parseInt(x.millisUTC)).toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});const period=inOvn(m)?'OVN':m>=6*60&&m<13*60?'MRN':m>=13*60&&m<19*60?'MID':'EVE';breakdownLines.push(`${t} · ${market.toFixed(2)}¢ mkt + ${delivery.toFixed(3)}¢ del = ${allin.toFixed(2)}¢ · $${intervalCost.toFixed(4)} [${period}]`);});const totalWallKwh=wallKwhPerInterval*sessionItems.length;const totalBattKwh=battKwhPerInterval*sessionItems.length;const avgAllin=(totalCost/totalWallKwh)*100;const milesAdded=totalBattKwh*MILES_PER_KWH;const cpm=totalCost/milesAdded*100;document.getElementById('sess-intervals').textContent=sessionItems.length;document.getElementById('sess-kwh').textContent=totalBattKwh.toFixed(2)+' kWh ('+totalWallKwh.toFixed(2)+' wall)';document.getElementById('sess-avg').textContent=avgAllin.toFixed(2)+'¢/kWh';document.getElementById('sess-total').textContent='$'+totalCost.toFixed(2);document.getElementById('sess-miles').textContent=milesAdded.toFixed(1)+' mi';document.getElementById('sess-cpm').textContent=cpm.toFixed(2)+'¢/mi';document.getElementById('sess-breakdown').innerHTML=breakdownLines.join('<br>');resEl.style.display='block';}
+function calcSession(){
   const startVal=document.getElementById('sess-start').value;
   const endVal=document.getElementById('sess-end').value;
   const errEl=document.getElementById('sess-error');
@@ -387,7 +387,7 @@ function calcSession(){const startVal=document.getElementById('sess-start').valu
     const m=toChiMin(x.ts_utc);
     const delivery=delAdder(m);
     const allin=market+delivery+FIXED_ADDER;
-    // kWh: use const intervalCost=(allin/100)*wallKwhPerInterval;actual session duration, not interval count (intervals may be sparse)   // Wall draw = 9.6kW / 0.90 eff; Battery delivered = 9.6kW * hours   const sessionHours=(endMs-startMs)/3600000;   const wallKwhPerHour=9.6/CHARGE_EFF;   const battKwhPerInterval=9.6/12;   const wallKwhPerInterval=wallKwhPerHour/12;
+    const intervalCost=(allin/100)*kwhPerInterval;
     totalCost+=intervalCost;
 
     const t=new Date(parseInt(x.millisUTC)).toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'2-digit',minute:'2-digit'});
@@ -401,7 +401,7 @@ function calcSession(){const startVal=document.getElementById('sess-start').valu
   const cpm=totalCost/milesAdded*100;
 
   document.getElementById('sess-intervals').textContent=sessionItems.length;
-  // kWh: use document.getElementById('sess-kwh').textContent=totalBattKwh.toFixed(2)+' kWh ('+totalWallKwh.toFixed(2)+' wall)';const totalWallKwh=wallKwhPerInterval*sessionItems.length; const totalBattKwh=battKwhPerInterval*sessionItems.length; const avgAllin=(totalCost/totalWallKwh)*100; const milesAdded=totalBattKwh*MILES_PER_KWH;const intervalCost=(allin/100)*wallKwhPerInterval;actual session duration, not interval count (intervals may be sparse)   // Wall draw = 9.6kW / 0.90 eff; Battery delivered = 9.6kW * hours   const sessionHours=(endMs-startMs)/3600000;   const wallKwhPerHour=9.6/CHARGE_EFF;   const battKwhPerInterval=9.6/12;   const wallKwhPerInterval=wallKwhPerHour/12;
+  document.getElementById('sess-kwh').textContent=totalKwh.toFixed(2)+' kWh';
   document.getElementById('sess-avg').textContent=avgAllin.toFixed(2)+'¢/kWh';
   document.getElementById('sess-total').textContent='$'+totalCost.toFixed(4);
   document.getElementById('sess-miles').textContent=milesAdded.toFixed(1)+' mi';
