@@ -300,16 +300,6 @@ async function loadFeed(){
     }
 
     // Countdown
-    const best3=bestWindow(slots,3);
-    if(best3){
-      window._best3=best3.start;
-      tickCountdown();
-    }
-  }catch(e){
-    console.error('Feed error',e);
-    document.getElementById('neg-ticker').textContent='Feed error: '+e.message;
-  }
-}
 
 function tickCountdown(){
   const startMin=window._best3;
