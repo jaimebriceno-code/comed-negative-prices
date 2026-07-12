@@ -116,11 +116,13 @@ svg.pchart{width:100%;height:120px;display:block;}
       <div id="sess-error" style="font-size:0.78rem;color:var(--red);margin-top:8px;display:none;"></div>
     </div>
 
-    <div class="rblock fill">
-      <div class="rlabel" style="text-align:center">Time Until Best 3-Hour Window</div>
-      <div class="countdown-val" id="countdown">&mdash;</div>
-      <div class="countdown-sub" id="countdown-sub">&mdash;</div>
-    </div>
+   <div class="rblock fill" style="padding:0; overflow:hidden;">
+  <iframe
+    src="http://homeassistant.local:8123/battery-bank/0"
+    style="width:100%; height:100%; border:none; display:block;"
+    title="Battery Bank Dashboard">
+   </iframe>
+   </div>
 
     <div class="refresh-row">
       <span class="refresh-info last-refresh">Last refresh: &mdash;</span>
