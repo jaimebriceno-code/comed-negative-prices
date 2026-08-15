@@ -1,31 +1,11 @@
 {
   "source": "ComEd 5-minute pricing API",
   "source_url": "https://hourlypricing.comed.com/api?type=5minutefeed&format=json",
-  "updated_at": "2026-08-15T07:44:22.701180+00:00",
-  "coverage_start": "2026-06-16T07:45:00+00:00",
+  "updated_at": "2026-08-15T08:00:25.420807+00:00",
+  "coverage_start": "2026-06-16T08:05:00+00:00",
   "coverage_end": "2026-08-15T06:30:00+00:00",
-  "item_count": 3637,
+  "item_count": 3633,
   "items": [
-    {
-      "millisUTC": "1781595900000",
-      "ts_utc": "2026-06-16T07:45:00+00:00",
-      "price": 1.5
-    },
-    {
-      "millisUTC": "1781596200000",
-      "ts_utc": "2026-06-16T07:50:00+00:00",
-      "price": 1.6
-    },
-    {
-      "millisUTC": "1781596500000",
-      "ts_utc": "2026-06-16T07:55:00+00:00",
-      "price": 1.5
-    },
-    {
-      "millisUTC": "1781596800000",
-      "ts_utc": "2026-06-16T08:00:00+00:00",
-      "price": 0.1
-    },
     {
       "millisUTC": "1781597100000",
       "ts_utc": "2026-06-16T08:05:00+00:00",
