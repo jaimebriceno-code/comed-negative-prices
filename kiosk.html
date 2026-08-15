@@ -292,6 +292,7 @@ async function loadFeed(){
 
     [2,3,4].forEach(h=>{
       const w=bestWindow(slots,h);
+      if (h === 3 && w) window._best3 = w.start;
       if(w)document.getElementById('bw'+h).textContent=fmtMin(w.start)+'–'+fmtMin(w.end);
     });
     if(slots.length){
