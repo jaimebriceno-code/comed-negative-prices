@@ -1,7 +1,7 @@
 {
   "source": "ComEd 5-minute pricing API",
   "source_url": "https://hourlypricing.comed.com/api?type=5minutefeed&format=json",
-  "updated_at": "2026-08-24T23:37:01.725531+00:00",
+  "updated_at": "2026-08-24T23:55:46.006171+00:00",
   "coverage_start": "2026-06-26T01:55:00+00:00",
   "coverage_end": "2026-08-24T19:20:00+00:00",
   "item_count": 2859,
