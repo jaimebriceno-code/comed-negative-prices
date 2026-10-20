@@ -1,0 +1,79 @@
+{"scenario": "fragmented_drift", "run": 1,
+ "headline": "Slow-growth stalemate: tariffs creep, debts swell, frontier defaults cluster, nobody fixes anything",
+ "metrics_2031": {
+  "world_real_gdp_growth_avg_pct_2027_2031": 2.6,
+  "global_unemployment_peak_pct": 5.6,
+  "global_unemployment_2031_pct": 5.3,
+  "inflation_peak_pct_g20_avg": 3.6,
+  "global_public_debt_pct_gdp_2031": 103,
+  "us_public_debt_pct_gdp_2031": 131,
+  "income_inequality_change": "rises",
+  "social_unrest_0_100": 44,
+  "trust_in_institutions_0_100": 35,
+  "firms_using_ai_pct_2031": 29,
+  "jobs_displaced_by_ai_millions_cumulative": 38,
+  "trade_fragmentation_0_100": 56,
+  "renewable_share_electricity_pct_2031": 42,
+  "warming_2031_c": 1.58,
+  "major_new_conflicts": 1,
+  "sovereign_debt_crises": 4
+ },
+ "timeline": [
+  {"year": 2027, "events": [
+   "Ukraine front freezes into a de facto armistice line without a peace treaty; EU sanctions rolled over, reconstruction finance stalls",
+   "US extends sectoral tariffs to pharmaceuticals and chips equipment; China answers with rare-earth export licensing tightened for 'unfriendly' end users",
+   "Fed trims to 3.25% then pauses as tariff pass-through keeps core inflation near 3%; ECB holds at 2%",
+   "AI capex boom continues but hyperscaler margins wobble; two mid-tier AI model labs are absorbed by Big Tech",
+   "Ethiopia-style restructurings drag on; Common Framework talks for two more frontier economies open"
+  ]},
+  {"year": 2028, "events": [
+   "US presidential election produces divided government; debt-ceiling standoff resolved at the last minute with a two-year suspension",
+   "Mild US slowdown (two flat quarters, no NBER recession); global growth dips to 2.3%",
+   "Bolivia and Pakistan miss Eurobond payments within six months of each other; IMF programmes take a year to finalise",
+   "Commercial-property losses force three regional bank mergers in the US and a Landesbank recapitalisation in Germany",
+   "Record heat in South Asia cuts wheat output; India imposes export bans, food inflation spikes in North Africa"
+  ]},
+  {"year": 2029, "events": [
+   "Inflation re-accelerates briefly to ~3.6% G20 average on food and freight costs as Red Sea disruptions recur",
+   "Border clashes escalate into a months-long armed conflict in the Sahel involving two states and Wagner-successor forces, displacing 2 million",
+   "EU adopts a watered-down 2040 target (85% cut with large international credits); CBAM revenues fund little",
+   "Japan 10-year yields touch 2.5%; BoJ slows QT and MoF shortens issuance, averting a disorderly sell-off",
+   "Back-office and customer-service employment in India and the Philippines falls for the first time as agentic AI matures"
+  ]},
+  {"year": 2030, "events": [
+   "COP35 confirms the world is off track for 1.5C; global emissions are roughly 2% below 2025, not 43%",
+   "Kenya restructures domestic and external debt after protests topple a finance minister; fourth sovereign crisis of the period",
+   "US-China agree a narrow 'guardrails' deal on soybeans, fentanyl precursors and a military hotline, but chip controls widen",
+   "France's deficit stuck above 5% triggers a spread spike to 140bp; ECB's TPI is discussed but not activated",
+   "Youth unemployment protests in Nigeria, Bangladesh and Morocco; governments respond with fuel subsidies they cannot afford"
+  ]},
+  {"year": 2031, "events": [
+   "Global growth settles around 2.7%; US deficit ~6.5% of GDP with net interest exceeding defence spending",
+   "Roughly 29% of firms use AI in production; productivity gains visible in software, finance and logistics but not in aggregate statistics",
+   "WTO dispute settlement still paralysed; share of world trade between rival blocs down ~10% from 2025",
+   "Housing affordability becomes the top issue in elections in Canada, Australia, the UK and Spain; rent caps spread",
+   "Gaza ceasefire holds shakily; Iran-Israel tensions simmer without a full war"
+  ]}
+ ],
+ "winners": [
+  "Connector economies (Vietnam, Mexico, UAE, Morocco) capturing rerouted supply chains",
+  "Big Tech and AI infrastructure owners with pricing power",
+  "Owners of existing housing and land in supply-constrained cities"
+ ],
+ "losers": [
+  "Indebted frontier economies in Africa and South Asia facing high rates and aid cuts",
+  "Young renters and entry-level white-collar workers in rich countries",
+  "Climate-exposed farmers and coastal communities in the tropics"
+ ],
+ "bullets": [
+  "Nothing collapsed and nothing was fixed: growth averages ~2.6%, below the pre-2020 trend, with fiscal space eroded everywhere",
+  "Public debt passes 100% of world GDP; interest bills now crowd out investment and social spending in the US, France, UK and Japan",
+  "Four sovereign debt crises in frontier markets resolved slowly and painfully, with China and bondholders arguing over comparability",
+  "Trade runs on blocs and 'friend-shoring' bilateral deals; tariff levels are slightly higher than 2026 and treated as permanent",
+  "AI is everywhere in large firms but diffusion is uneven; ~38 million jobs displaced globally, mostly absorbed slowly into lower-paid service work",
+  "Renewables hit ~42% of electricity but gas and coal persist; warming nears 1.6C and extreme heat is a routine policy problem",
+  "Politics is polarised and transactional; trust drifts down, protests flare around cost of living and youth unemployment rather than revolution"
+ ],
+ "wildcard": "A Sahel interstate war in 2029 that drew in Gulf and Russian-linked mercenary forces and triggered a major migration wave toward North Africa and Europe",
+ "image_description": "In a sweltering 2031 Lagos evening, a young graduate rides a solar-charged e-okada delivering parcels routed by an AI dispatch app, passing a half-finished Chinese-financed rail viaduct and a billboard advertising visa lotteries for Gulf construction jobs."
+}

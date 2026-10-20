@@ -1,0 +1,55 @@
+{"scenario": "ai_acceleration", "run": 5, "headline": "Agents boom, offices empty, power grids strain, and a bond scare forces AI taxes",
+ "metrics_2031": {"world_real_gdp_growth_avg_pct_2027_2031": 3.6, "global_unemployment_peak_pct": 7.4, "global_unemployment_2031_pct": 6.3, "inflation_peak_pct_g20_avg": 4.6, "global_public_debt_pct_gdp_2031": 104, "us_public_debt_pct_gdp_2031": 131, "income_inequality_change": "rises sharply", "social_unrest_0_100": 62, "trust_in_institutions_0_100": 31, "firms_using_ai_pct_2031": 58, "jobs_displaced_by_ai_millions_cumulative": 210, "trade_fragmentation_0_100": 49, "renewable_share_electricity_pct_2031": 45, "warming_2031_c": 1.6, "major_new_conflicts": 2, "sovereign_debt_crises": 5},
+ "timeline": [
+  {"year": 2027, "events": [
+   "Spring capability jump: agentic systems reliably complete multi-day software, accounting and paralegal workflows; enterprise 'agent seats' outsell new human hires in US services",
+   "AI capex passes $900bn annualised; hyperscalers sign 20-year nuclear and gas PPAs, PJM and ERCOT capacity prices triple",
+   "US equities hit records led by a handful of AI firms while BPO hubs in the Philippines and India report first large layoffs",
+   "Fed holds at ~3.5% as electricity-driven inflation offsets disinflation in services; ECB cuts once",
+   "US-China agree a limited tariff truce extension; chip export controls remain but trade escalation stalls"
+  ]},
+  {"year": 2028, "events": [
+   "Second capability jump: robotic foundation models enter warehouses, logistics and fast food at scale; customer-service employment in OECD falls ~30% in 18 months",
+   "US unemployment rises from 4.3% to 6.1% with college-graduate unemployment above non-graduate for the first time; 'graduate gap' dominates the US election",
+   "Electricity price spikes push G20 inflation to a 4.6% peak; several US states impose data-centre moratoria and grid-connection auctions",
+   "New US administration passes an emergency 'Transition Dividend' (expanded UI, wage insurance) without offsetting revenue",
+   "Philippines and Sri Lanka enter IMF programmes as services-export revenues collapse"
+  ]},
+  {"year": 2029, "events": [
+   "US Treasury auction failure triggers a bond tantrum: 10-year yield hits 6.2%, Fed restarts balance-sheet purchases under 'market functioning' cover",
+   "Congress enacts a compute-and-automation levy (~3% on large AI firms' revenue) plus higher capital-gains taxes; AI stocks fall 35% then recover",
+   "Global unemployment peaks at 7.4%; large protests in Paris, Seoul, Manila and Lagos; a wave of white-collar unionisation in Europe",
+   "Japan and Korea adopt aggressive robotics-for-elderly-care programmes, turning demographic decline into an AI deployment advantage",
+   "Border clashes between Ethiopia and Eritrea escalate into open war; Ukraine front freezes into an armistice line",
+   "Pakistan and Egypt restructure debt; Kenya misses a Eurobond coupon"
+  ]},
+  {"year": 2030, "events": [
+   "Productivity growth in the US hits 3.8%, the fastest since the 1950s; real GDP grows ~4% globally as AI drives down costs in software, legal, medical diagnostics",
+   "Solar-plus-storage additions surge as hyperscalers chase cheap power; renewables pass 40% of global electricity but gas and coal plants are kept online for data-centre load",
+   "EU adopts a 'Human Work Guarantee' pilot and a digital levy; trust in national governments in Europe falls to record lows anyway",
+   "Taiwan Strait naval incident triggers a three-week shipping disruption and chip-price spike, contained by back-channel talks",
+   "AI-designed drug candidates enter phase 3 trials in record numbers; first AI-discovered antibiotic approved"
+  ]},
+  {"year": 2031, "events": [
+   "Unemployment eases to 6.3% globally as new care, construction, energy and AI-supervision roles absorb workers, but at lower median wages",
+   "Three firms account for over 60% of frontier model revenue; antitrust cases launched in US and EU",
+   "Policy rates settle near 3% as goods and services prices fall while energy and housing stay expensive",
+   "A Sahel-coastal West Africa conflict spills over into Benin and Togo, driven by unemployed youth recruitment",
+   "Global public debt reaches ~104% of GDP; G20 launches a compute-revenue sharing fund for debt-distressed services exporters"
+  ]}
+ ],
+ "winners": ["Frontier AI labs and hyperscalers plus their shareholders", "Energy and grid equipment firms, nuclear and solar developers", "Ageing, high-automation economies like Japan and Korea", "Skilled trades, nurses and care workers"],
+ "losers": ["Routine white-collar workers and recent graduates", "Services-export economies such as the Philippines, India's BPO hubs and Kenya", "Debt-heavy governments facing higher term premia", "Young workers in Africa and South Asia without a manufacturing ladder"],
+ "bullets": [
+  "AI agents now do most routine office work; 58% of firms use AI in production and junior professional hiring has largely vanished",
+  "Global growth averaged a strong 3.6%, but the gains went disproportionately to capital and a handful of firms, so inequality rose sharply",
+  "A 2029 US bond tantrum forced the first automation levy and set a template copied by the EU, UK and Canada",
+  "Electricity, not chips, became the binding constraint: data centres consume ~6% of global power and power bills drive political anger",
+  "Renewables reached 45% of electricity, yet fossil plants kept for AI load meant emissions only plateaued and warming hit ~1.6C",
+  "Trade tensions stayed contained; the main fragmentation is in compute, chips and data rather than tariffs",
+  "Social unrest is high and trust low; populists of left and right campaign on 'humans first' hiring quotas",
+  "Services-export developing economies suffered five sovereign debt crises as their growth model eroded"
+ ],
+ "wildcard": "A 2029 failed US Treasury auction triggered a global bond tantrum that directly produced the first major automation tax.",
+ "image_description": "In a half-empty Manila office tower converted into a night-shift data-labelling and elder-care training centre, former call-centre workers in hard hats queue for wage-insurance kiosks while robot couriers glide past under flickering, rationed lights."
+}
