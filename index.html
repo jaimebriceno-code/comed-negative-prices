@@ -202,6 +202,8 @@ function toChiMin(iso){
   return hh*60+parseInt(m,10);
 }
 function inOvn(m){return m>=OVN_START||m<OVN_END;}
+// Overnight order key: 9:00 PM -> 0, midnight -> 180, 5:55 AM -> 535 (so windows can cross midnight)
+function ovnKey(m){return (m-OVN_START+1440)%1440;}
 function delAdder(m){
   if(inOvn(m))return DELIVERY.overnight;
   if(m>=6*60&&m<13*60)return DELIVERY.morning;
@@ -294,7 +296,7 @@ function processData(data){
     else if(ra!==null)wavg=ra;
     else wavg=oa;
     return{min:s.min,wavg};
-  }).sort((a,b)=>a.min-b.min);
+  }).sort((a,b)=>ovnKey(a.min)-ovnKey(b.min));
 
   [2,3,4].forEach(h=>{
     const w=bestWindow(slots,h);
@@ -425,7 +427,7 @@ async function loadTomorrow(){
       return h*60+parseInt(m[2],10);
     }
     const ovn=parsed.map(x=>({...x,min:hm(x.label)})).filter(x=>x.min!==null&&inOvn(x.min));
-    ovn.sort((a,b)=>a.min-b.min);
+    ovn.sort((a,b)=>ovnKey(a.min)-ovnKey(b.min));
     let best=null;
     for(let i=0;i<=ovn.length-3;i++){
       const sl=ovn.slice(i,i+3);let ok=true;
